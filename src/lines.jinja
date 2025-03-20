@@ -8,10 +8,12 @@
     {% for scene, lines in script %}
         <h1>{{ scene }}</h1>
         {% for prefix, line in lines -%}
-            <p><span class="prefix">{{ prefix }}</span>
-            {% for element in line -%}
-                {{ element }}
-            {%- endfor %}
+            <p>
+                <span class="prefix">{{ prefix }}</span>
+                {% for element in line -%}
+                    {{ element }}
+                {%- endfor %}
+            </p>
         {% endfor %}
     {% endfor %}
 </body>
