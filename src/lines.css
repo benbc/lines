@@ -12,3 +12,7 @@ body {
 .current-line {
     font-weight: bolder;
 }
+
+:not(.display) > .detail {
+    visibility: hidden;
+}
