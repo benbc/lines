@@ -22,6 +22,10 @@ function selectLine(dirFn) {
   if (!siblingLine || siblingLine.tagName !== "P") return;
   currentLine.classList.remove("current-line");
   siblingLine.classList.add("current-line");
+  siblingLine.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
 }
 
 function selectNextLine() {
