@@ -1,5 +1,5 @@
 window.addEventListener("keydown", function (e) {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+  if (["ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
     e.preventDefault();
   }
 });
@@ -10,9 +10,7 @@ document.addEventListener("keydown", function (event) {
   } else if (event.key === "ArrowLeft") {
     selectPreviousLine();
   } else if (event.key === "ArrowDown") {
-    displayCurrentLine();
-  } else if (event.key === "ArrowUp") {
-    screenCurrentLine();
+    toggleLineDisplay();
   }
 });
 
@@ -36,12 +34,11 @@ function selectPreviousLine() {
   selectLine((line) => line.previousElementSibling);
 }
 
-function displayCurrentLine() {
+function toggleLineDisplay() {
   const currentLine = document.querySelector("p.current-line");
-  currentLine.classList.add("display");
-}
-
-function screenCurrentLine() {
-  const currentLine = document.querySelector("p.current-line");
-  currentLine.classList.remove("display");
+  if (currentLine.classList.contains("display")) {
+    currentLine.classList.remove("display");
+  } else {
+    currentLine.classList.add("display");
+  }
 }
