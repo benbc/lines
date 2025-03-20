@@ -19,6 +19,7 @@ function selectLine(dirFn) {
   const siblingLine = dirFn(currentLine);
   if (!siblingLine || siblingLine.tagName !== "P") return;
   currentLine.classList.remove("current-line");
+  currentLine.classList.remove("display");
   siblingLine.classList.add("current-line");
   siblingLine.scrollIntoView({
     behavior: "smooth",
