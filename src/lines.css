@@ -8,3 +8,7 @@ body {
     display: inline-block;
     width: 5em;
 }
+
+.current-line {
+    font-weight: bolder;
+}
