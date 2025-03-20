@@ -1,0 +1,159 @@
+#!/usr/bin/env -S uv --quiet run --script
+# /// script
+# requires-python = "==3.13"
+# dependencies = [
+#     "Jinja2",
+# ]
+# ///
+
+
+import jinja2
+
+
+def main():
+    script = parse("src/script.txt")
+    script = shorten_prefixes(script)
+    script = split_lines(script)
+    script = zip_prefixes(script)
+    html = render(script, "src/lines.jinja")
+    write(html, "out/lines.html")
+
+
+def parse(path):
+    scenes = []
+    scene = None
+    speeches = []
+    prefix = None
+    lines = []
+
+    line_num = 0
+    line_type = "space"
+
+    with open(path, "r") as file:
+        for line in file:
+            line = line.rstrip()
+            line_num += 1
+            msg = f"{line_num}: {line}"
+            if not line:
+                assert line_type != "space", msg
+
+                if line_type == "line":
+                    speeches.append((prefix, lines))
+                    prefix, lines = None, []
+
+                line_type = "space"
+            elif line.startswith("ACT "):
+                assert line_type == "space", msg
+                assert not prefix, msg
+                assert not lines, msg
+
+                if scene:
+                    scenes.append((scene, speeches))
+                scene = line
+                speeches = []
+
+                line_type = "scene"
+            elif line.isupper():
+                assert line_type == "space", msg
+                assert scene, msg
+                assert not prefix, msg
+                assert not lines, msg
+
+                prefix = line
+
+                line_type = "prefix"
+            elif line:
+                assert line_type in ["space", "line"], msg
+                assert scene, msg
+                assert prefix, msg
+
+                lines.append(line)
+
+                line_type = "line"
+            else:
+                assert False, msg
+
+        speeches.append((prefix, lines))
+        scenes.append((scene, speeches))
+
+    return scenes
+
+
+def shorten_prefixes(script):
+    prefixes = {prefix for _, speeches in script for prefix, _ in speeches}
+    mapping = {prefix: prefix[0:4] for prefix in prefixes}
+    overrides = {
+        "KING EDWARD IV": "EDWA",
+        "LADY ANNE": "ANNE",
+        "LORD MAYOR": "MAYO",
+        "PRINCE EDWARD": "PrED",
+        "PRINCE RICHARD": "PrRI",
+        "QUEEN ELIZABETH": "ELIZ",
+        "QUEEN MARGARET": "MARG",
+    }
+    mapping = mapping | overrides
+
+    shortened = []
+    for scene, speeches in script:
+        shortened_speeches = []
+        for prefix, lines in speeches:
+            shortened_speeches.append((mapping[prefix], lines))
+        shortened.append((scene, shortened_speeches))
+
+    return shortened
+
+
+def split_lines(script):
+    split = []
+    for scene, speeches in script:
+        split_speeches = []
+        for prefix, lines in speeches:
+            split_lines = []
+
+            for line in lines:
+                elements = []
+                acc = ""
+                for c in line:
+                    if c.isalpha() or c == "'":
+                        acc += c
+                    else:
+                        if acc:
+                            elements.append(acc)
+                            acc = ""
+                        elements.append(c)
+                if acc:
+                    elements.append(acc)
+                split_lines.append(elements)
+
+            split_speeches.append((prefix, split_lines))
+        split.append((scene, split_speeches))
+
+    return split
+
+
+# Replaces lists of speeches, each with a single prefix, with an unbroken
+# list of lines where lines in a speech after the first have a blank prefix.
+def zip_prefixes(script):
+    zipped = []
+    for scene, speeches in script:
+        zipped_lines = []
+        for prefix, lines in speeches:
+            prefixes = [prefix] + [""] * (len(lines) - 1)
+            zipped_lines.extend(zip(prefixes, lines))
+        zipped.append((scene, zipped_lines))
+    return zipped
+
+
+def render(script, path):
+    with open(path) as file_:
+        template = jinja2.Template(file_.read())
+    return template.render(script=script)
+
+
+def write(html, path):
+    with open(path, "w") as file:
+        file.write(html)
+
+
+if __name__ == "__main__":
+    main()

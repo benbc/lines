@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="../src/lines.css" rel="stylesheet" />
+    <script src="../src/lines.js"></script>
+</head>
+<body>
+    {% for scene, lines in script %}
+        <h1>{{ scene }}</h1>
+        {% for prefix, line in lines -%}
+            <p><span class="prefix">{{ prefix }}</span>
+            {% for element in line -%}
+                {{ element }}
+            {%- endfor %}
+        {% endfor %}
+    {% endfor %}
+</body>
+</html>
