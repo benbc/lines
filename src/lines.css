@@ -9,8 +9,12 @@ body {
     width: 5em;
 }
 
+p {
+    color: grey;
+}
+
 .current-line {
-    font-weight: bolder;
+    color: black;
 }
 
 :not(.display) > .detail {
