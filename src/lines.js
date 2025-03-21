@@ -18,6 +18,8 @@ document.addEventListener("keydown", function (event) {
       selectPreviousLine();
     } else if (event.key === "ArrowDown") {
       toggleLineDisplay();
+    } else if (event.key === ".") {
+      machine.step();
     }
   }
 });
@@ -88,6 +90,11 @@ function selectLine(line) {
   });
 }
 
+function currentLineScreened() {
+  const currentLine = document.querySelector("p.current-line");
+  return !currentLine.classList.contains("display");
+}
+
 function toggleLineDisplay() {
   const currentLine = document.querySelector("p.current-line");
   if (currentLine.classList.contains("display")) {
@@ -96,3 +103,34 @@ function toggleLineDisplay() {
     currentLine.classList.add("display");
   }
 }
+
+const machine = {
+  chunkLength: 5,
+  chunkIndex: 0,
+
+  step() {
+    if (currentLineScreened()) {
+      toggleLineDisplay();
+    } else if (this.moreLeftInChunk()) {
+      this.moveForward();
+    } else {
+      this.reset();
+    }
+  },
+
+  moreLeftInChunk() {
+    return this.chunkIndex + 1 < this.chunkLength;
+  },
+
+  moveForward() {
+    selectNextLine();
+    this.chunkIndex += 1;
+  },
+
+  reset() {
+    for (var i = 0; i < this.chunkLength - 1; i++) {
+      selectPreviousLine();
+    }
+    this.chunkIndex = 0;
+  },
+};
