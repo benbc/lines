@@ -105,7 +105,8 @@ function toggleLineDisplay() {
 }
 
 const machine = {
-  chunkLength: 5,
+  maxChunkLength: 5,
+  chunkLength: 1,
   chunkIndex: 0,
 
   step() {
@@ -128,8 +129,14 @@ const machine = {
   },
 
   reset() {
-    for (var i = 0; i < this.chunkLength - 1; i++) {
-      selectPreviousLine();
+    if (this.chunkLength == this.maxChunkLength) {
+      this.chunkLength = 1;
+      toggleLineDisplay();
+    } else {
+      this.chunkLength += 1;
+      for (var i = 0; i < this.chunkLength - 1; i++) {
+        selectPreviousLine();
+      }
     }
     this.chunkIndex = 0;
   },
