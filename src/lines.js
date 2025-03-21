@@ -131,7 +131,7 @@ const machine = {
   reset() {
     if (this.chunkLength == this.maxChunkLength) {
       this.chunkLength = 1;
-      toggleLineDisplay();
+      selectNextLine();
     } else {
       this.chunkLength += 1;
       for (var i = 0; i < this.chunkLength - 1; i++) {
