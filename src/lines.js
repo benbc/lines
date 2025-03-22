@@ -55,6 +55,7 @@ async function learnLine() {
   await keyPress(".");
   toggleLineDisplay();
   await keyPress(".");
+  toggleLineDisplay();
 }
 
 function moveForward(lines) {
@@ -136,7 +137,6 @@ function moveSelected(dirFn) {
 
 function deselectLine(line) {
   line.classList.remove("current-line");
-  line.classList.remove("display");
 }
 
 function selectLine(line) {
