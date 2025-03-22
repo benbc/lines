@@ -29,7 +29,7 @@ async function control() {
 }
 
 async function learnChunks() {
-  const size = 5;
+  const size = 3;
   while (true) {
     await learnChunk(size);
     moveForward(1);
