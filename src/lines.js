@@ -31,17 +31,16 @@ async function control() {
 async function learnChunks() {
   const size = 3;
   while (true) {
-    await learnChunk(size);
+    await learnChunk(Math.min(size, countLinesAbove() + 1));
     moveForward(1);
   }
 }
 
 async function learnChunk(chunkSize) {
   for (var fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
+    moveBack(fragmentSize - 1);
     await learnFragment(fragmentSize);
-    moveBack(fragmentSize + 1);
   }
-  moveForward(fragmentSize - 1);
 }
 
 async function learnFragment(size) {
@@ -49,6 +48,7 @@ async function learnFragment(size) {
     await learnLine();
     moveForward(1);
   }
+  moveBack(1);
 }
 
 async function learnLine() {
@@ -89,7 +89,7 @@ function previousScene() {
 }
 
 function moveScene(dir) {
-  const currentLine = document.querySelector("p.current-line");
+  const currentLine = getCurrentLine();
   currentHeading = findPrevious(currentLine, "H1");
 
   heading = dir(currentHeading, "H1");
@@ -108,6 +108,7 @@ function findNext(from, tag) {
     }
   }
 }
+
 function findPrevious(from, tag) {
   next = from;
   while ((next = next.previousElementSibling)) {
@@ -126,7 +127,7 @@ function selectPreviousLine() {
 }
 
 function moveSelected(dirFn) {
-  const currentLine = document.querySelector("p.current-line");
+  const currentLine = getCurrentLine();
   const siblingLine = dirFn(currentLine);
   if (!siblingLine || siblingLine.tagName !== "P") return;
   deselectLine(currentLine);
@@ -147,10 +148,26 @@ function selectLine(line) {
 }
 
 function toggleLineDisplay() {
-  const currentLine = document.querySelector("p.current-line");
+  const currentLine = getCurrentLine();
   if (currentLine.classList.contains("display")) {
     currentLine.classList.remove("display");
   } else {
     currentLine.classList.add("display");
   }
+}
+
+function countLinesAbove() {
+  var count = 0;
+  for (
+    var next = getCurrentLine();
+    next.tagName === "P";
+    next = next.previousElementSibling
+  ) {
+    count++;
+  }
+  return count - 1; // count includes current element
+}
+
+function getCurrentLine() {
+  return document.querySelector("p.current-line");
 }
