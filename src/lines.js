@@ -25,24 +25,36 @@ document.addEventListener("keydown", function (event) {
 window.addEventListener("load", (_) => control());
 
 async function control() {
-  learnChunk();
+  await learnChunks();
 }
 
-async function learnChunk() {
-  var maxChunkLength = 5;
-
+async function learnChunks() {
+  const size = 5;
   while (true) {
-    for (var chunkLength = 1; chunkLength <= maxChunkLength; chunkLength++) {
-      for (var chunkIndex = 0; chunkIndex < chunkLength; chunkIndex++) {
-        await keyPress(".");
-        toggleLineDisplay();
-        await keyPress(".");
-        moveForward(1);
-      }
-      moveBack(chunkLength + 1);
-    }
-    moveForward(maxChunkLength + 1);
+    await learnChunk(size);
+    moveForward(1);
   }
+}
+
+async function learnChunk(chunkSize) {
+  for (var fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
+    await learnFragment(fragmentSize);
+    moveBack(fragmentSize + 1);
+  }
+  moveForward(fragmentSize - 1);
+}
+
+async function learnFragment(size) {
+  for (var i = 0; i < size; i++) {
+    await learnLine();
+    moveForward(1);
+  }
+}
+
+async function learnLine() {
+  await keyPress(".");
+  toggleLineDisplay();
+  await keyPress(".");
 }
 
 function moveForward(lines) {
