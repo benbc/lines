@@ -18,8 +18,6 @@ document.addEventListener("keydown", function (event) {
       selectPreviousLine();
     } else if (event.key === "ArrowDown") {
       toggleLineDisplay();
-    } else if (event.key === ".") {
-      machine.step();
     }
   }
 });
@@ -90,11 +88,6 @@ function selectLine(line) {
   });
 }
 
-function currentLineScreened() {
-  const currentLine = document.querySelector("p.current-line");
-  return !currentLine.classList.contains("display");
-}
-
 function toggleLineDisplay() {
   const currentLine = document.querySelector("p.current-line");
   if (currentLine.classList.contains("display")) {
@@ -104,40 +97,48 @@ function toggleLineDisplay() {
   }
 }
 
-const machine = {
-  maxChunkLength: 5,
-  chunkLength: 1,
-  chunkIndex: 0,
+window.addEventListener("load", (_) => control());
 
-  step() {
-    if (currentLineScreened()) {
-      toggleLineDisplay();
-    } else if (this.moreLeftInChunk()) {
-      this.moveForward();
-    } else {
-      this.reset();
-    }
-  },
+async function control() {
+  learnChunk();
+}
 
-  moreLeftInChunk() {
-    return this.chunkIndex + 1 < this.chunkLength;
-  },
+async function learnChunk() {
+  var maxChunkLength = 5;
 
-  moveForward() {
-    selectNextLine();
-    this.chunkIndex += 1;
-  },
-
-  reset() {
-    if (this.chunkLength == this.maxChunkLength) {
-      this.chunkLength = 1;
-      selectNextLine();
-    } else {
-      this.chunkLength += 1;
-      for (var i = 0; i < this.chunkLength - 1; i++) {
-        selectPreviousLine();
+  while (true) {
+    for (var chunkLength = 1; chunkLength <= maxChunkLength; chunkLength++) {
+      for (var chunkIndex = 0; chunkIndex < chunkLength; chunkIndex++) {
+        await keyPress(".");
+        toggleLineDisplay();
+        await keyPress(".");
+        moveForward(1);
       }
+      moveBack(chunkLength + 1);
     }
-    this.chunkIndex = 0;
-  },
-};
+    moveForward(maxChunkLength + 1);
+  }
+}
+
+function moveForward(lines) {
+  for (var i = 0; i < lines; i++) {
+    selectNextLine();
+  }
+}
+
+function moveBack(lines) {
+  for (var i = 0; i < lines; i++) {
+    selectPreviousLine();
+  }
+}
+
+async function keyPress(key) {
+  return new Promise((resolve) => {
+    const handleKeyPress = (event) => {
+      if (event.key !== key) return;
+      document.removeEventListener("keydown", handleKeyPress);
+      resolve(event);
+    };
+    document.addEventListener("keydown", handleKeyPress);
+  });
+}
