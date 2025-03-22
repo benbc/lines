@@ -22,6 +22,52 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+window.addEventListener("load", (_) => control());
+
+async function control() {
+  learnChunk();
+}
+
+async function learnChunk() {
+  var maxChunkLength = 5;
+
+  while (true) {
+    for (var chunkLength = 1; chunkLength <= maxChunkLength; chunkLength++) {
+      for (var chunkIndex = 0; chunkIndex < chunkLength; chunkIndex++) {
+        await keyPress(".");
+        toggleLineDisplay();
+        await keyPress(".");
+        moveForward(1);
+      }
+      moveBack(chunkLength + 1);
+    }
+    moveForward(maxChunkLength + 1);
+  }
+}
+
+function moveForward(lines) {
+  for (var i = 0; i < lines; i++) {
+    selectNextLine();
+  }
+}
+
+function moveBack(lines) {
+  for (var i = 0; i < lines; i++) {
+    selectPreviousLine();
+  }
+}
+
+async function keyPress(key) {
+  return new Promise((resolve) => {
+    const handleKeyPress = (event) => {
+      if (event.key !== key) return;
+      document.removeEventListener("keydown", handleKeyPress);
+      resolve(event);
+    };
+    document.addEventListener("keydown", handleKeyPress);
+  });
+}
+
 function nextScene() {
   return moveScene(findNext);
 }
@@ -95,50 +141,4 @@ function toggleLineDisplay() {
   } else {
     currentLine.classList.add("display");
   }
-}
-
-window.addEventListener("load", (_) => control());
-
-async function control() {
-  learnChunk();
-}
-
-async function learnChunk() {
-  var maxChunkLength = 5;
-
-  while (true) {
-    for (var chunkLength = 1; chunkLength <= maxChunkLength; chunkLength++) {
-      for (var chunkIndex = 0; chunkIndex < chunkLength; chunkIndex++) {
-        await keyPress(".");
-        toggleLineDisplay();
-        await keyPress(".");
-        moveForward(1);
-      }
-      moveBack(chunkLength + 1);
-    }
-    moveForward(maxChunkLength + 1);
-  }
-}
-
-function moveForward(lines) {
-  for (var i = 0; i < lines; i++) {
-    selectNextLine();
-  }
-}
-
-function moveBack(lines) {
-  for (var i = 0; i < lines; i++) {
-    selectPreviousLine();
-  }
-}
-
-async function keyPress(key) {
-  return new Promise((resolve) => {
-    const handleKeyPress = (event) => {
-      if (event.key !== key) return;
-      document.removeEventListener("keydown", handleKeyPress);
-      resolve(event);
-    };
-    document.addEventListener("keydown", handleKeyPress);
-  });
 }
