@@ -23,7 +23,7 @@ async function control() {
 }
 
 async function learnLine() {
-  const fullChunkSize = 3;
+  const fullChunkSize = 5;
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
   const maxLinesBelow = Math.min(fullChunkSize - 1, countLinesBelow());
 
