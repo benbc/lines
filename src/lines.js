@@ -16,7 +16,9 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
+        flagLearning();
         await learnLine();
+        unflagLearning();
         break;
     }
   }
@@ -181,4 +183,20 @@ function countLines(dir) {
 
 function getCurrentLine() {
   return document.querySelector("p.current-line");
+}
+
+function flagLearning() {
+  rule = getCurrentLineRule();
+  rule.style.setProperty("background-color", "linen");
+}
+
+function unflagLearning() {
+  rule = getCurrentLineRule();
+  rule.style.removeProperty("background-color", "linen");
+}
+
+function getCurrentLineRule() {
+  return [...document.styleSheets[0].cssRules].find(
+    (r) => r.selectorText === ".current-line",
+  );
 }
