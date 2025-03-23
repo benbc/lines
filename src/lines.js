@@ -4,28 +4,28 @@ window.addEventListener("keydown", function (e) {
   }
 });
 
-document.addEventListener("keydown", function (event) {
-  if (event.ctrlKey) {
-    if (event.key === "ArrowRight") {
-      nextScene();
-    } else if (event.key === "ArrowLeft") {
-      previousScene();
-    }
-  } else {
-    if (event.key === "ArrowRight") {
-      selectNextLine();
-    } else if (event.key === "ArrowLeft") {
-      selectPreviousLine();
-    } else if (event.key === "ArrowDown") {
-      toggleLineDisplay();
-    }
-  }
-});
-
 window.addEventListener("load", (_) => control());
 
 async function control() {
-  await learnChunks();
+  while (true) {
+    var event = await keyPress("ArrowLeft", "ArrowRight", "ArrowDown", "l");
+    switch (event.key) {
+      case "ArrowLeft":
+        if (event.ctrlKey) previousScene();
+        else selectPreviousLine();
+        break;
+      case "ArrowRight":
+        if (event.ctrlKey) nextScene();
+        else selectNextLine();
+        break;
+      case "ArrowDown":
+        toggleLineDisplay();
+        break;
+      case "l":
+        await learnChunks();
+        break;
+    }
+  }
 }
 
 async function learnChunks() {
@@ -52,7 +52,7 @@ async function learnFragment(size) {
 }
 
 async function checkLine() {
-  if ((await keyPress(".", "m")) === "m") {
+  if ((await keyPress(".", "m")).key === "m") {
     displayCurrentLine();
     await keyPress(".", "m");
     hideCurrentLine();
@@ -76,7 +76,7 @@ async function keyPress(...expected) {
     const handleKeyPress = (event) => {
       if (!expected.includes(event.key)) return;
       document.removeEventListener("keydown", handleKeyPress);
-      resolve(event.key);
+      resolve(event);
     };
     document.addEventListener("keydown", handleKeyPress);
   });
