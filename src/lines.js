@@ -25,12 +25,13 @@ async function control() {
 async function learnChunks() {
   const size = 3;
   while (true) {
-    await learnChunk(Math.min(size, countLinesAbove() + 1));
+    await learnChunk(size);
     moveForward(1);
   }
 }
 
-async function learnChunk(chunkSize) {
+async function learnChunk(fullChunkSize) {
+  chunkSize = Math.min(fullChunkSize, countLinesAbove() + 1);
   for (var fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     moveBack(fragmentSize - 1);
     await learnFragment(fragmentSize);
