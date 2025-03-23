@@ -52,10 +52,11 @@ async function learnFragment(size) {
 }
 
 async function learnLine() {
-  await keyPress(".");
-  displayCurrentLine();
-  await keyPress(".");
-  hideCurrentLine();
+  if ((await keyPress(".", "m")) === "m") {
+    displayCurrentLine();
+    await keyPress(".", "m");
+    hideCurrentLine();
+  }
 }
 
 function moveForward(lines) {
@@ -70,12 +71,12 @@ function moveBack(lines) {
   }
 }
 
-async function keyPress(key) {
+async function keyPress(...expected) {
   return new Promise((resolve) => {
     const handleKeyPress = (event) => {
-      if (event.key !== key) return;
+      if (!expected.includes(event.key)) return;
       document.removeEventListener("keydown", handleKeyPress);
-      resolve(event);
+      resolve(event.key);
     };
     document.addEventListener("keydown", handleKeyPress);
   });
