@@ -53,9 +53,9 @@ async function learnFragment(size) {
 
 async function learnLine() {
   await keyPress(".");
-  toggleLineDisplay();
+  displayCurrentLine();
   await keyPress(".");
-  toggleLineDisplay();
+  hideCurrentLine();
 }
 
 function moveForward(lines) {
@@ -148,12 +148,19 @@ function selectLine(line) {
 }
 
 function toggleLineDisplay() {
-  const currentLine = getCurrentLine();
-  if (currentLine.classList.contains("display")) {
-    currentLine.classList.remove("display");
+  if (getCurrentLine().classList.contains("display")) {
+    hideCurrentLine();
   } else {
-    currentLine.classList.add("display");
+    displayCurrentLine();
   }
+}
+
+function displayCurrentLine() {
+  getCurrentLine().classList.add("display");
+}
+
+function hideCurrentLine() {
+  getCurrentLine().classList.remove("display");
 }
 
 function countLinesAbove() {
