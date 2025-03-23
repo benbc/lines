@@ -23,18 +23,19 @@ async function control() {
 }
 
 async function learnLine() {
-  const chunkSize = 3;
-  const linesAbove = Math.min(chunkSize - 1, countLinesAbove());
-  const linesBelow = Math.min(chunkSize - 1, countLinesBelow());
-  moveBack(linesAbove);
-  for (var i = 0; i < linesAbove + 1 + linesBelow; i++) {
+  const fullChunkSize = 3;
+  const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
+  const maxLinesBelow = Math.min(fullChunkSize - 1, countLinesBelow());
+
+  for (var linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
+    var linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
+    var chunkSize = linesAbove + 1 + linesBelow;
     await learnChunk(chunkSize);
     moveForward(1);
   }
 }
 
-async function learnChunk(fullChunkSize) {
-  const chunkSize = Math.min(fullChunkSize, countLinesAbove() + 1);
+async function learnChunk(chunkSize) {
   for (var fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     moveBack(fragmentSize - 1);
     await learnFragment(fragmentSize);
