@@ -16,16 +16,19 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
-        await learnChunks();
+        await learnLine();
         break;
     }
   }
 }
 
-async function learnChunks() {
-  const size = 3;
-  while (true) {
-    await learnChunk(size);
+async function learnLine() {
+  var chunkSize = 3;
+  var linesAbove = Math.min(chunkSize - 1, countLinesAbove());
+  var linesBelow = Math.min(chunkSize - 1, countLinesBelow());
+  moveBack(linesAbove);
+  for (var i = 0; i < linesAbove + 1 + linesBelow; i++) {
+    learnChunk(chunkSize);
     moveForward(1);
   }
 }
@@ -161,12 +164,16 @@ function hideCurrentLine() {
 }
 
 function countLinesAbove() {
+  return countLines((line) => line.previousElementSibling);
+}
+
+function countLinesBelow() {
+  return countLines((line) => line.nextElementSibling);
+}
+
+function countLines(dir) {
   var count = 0;
-  for (
-    var next = getCurrentLine();
-    next.tagName === "P";
-    next = next.previousElementSibling
-  ) {
+  for (var next = getCurrentLine(); next.tagName === "P"; next = dir(next)) {
     count++;
   }
   return count - 1; // count includes current element
