@@ -1,9 +1,3 @@
-window.addEventListener("keydown", function (e) {
-  if (["ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-    e.preventDefault();
-  }
-});
-
 window.addEventListener("load", (_) => control());
 
 async function control() {
@@ -75,6 +69,7 @@ async function keyPress(...expected) {
   return new Promise((resolve) => {
     const handleKeyPress = (event) => {
       if (!expected.includes(event.key)) return;
+      event.preventDefault();
       document.removeEventListener("keydown", handleKeyPress);
       resolve(event);
     };
