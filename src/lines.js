@@ -102,17 +102,16 @@ function moveScene(dir) {
 }
 
 function findNext(from, tag) {
-  var next = from;
-  while ((next = next.nextElementSibling)) {
-    if (next.tagName === tag) {
-      return next;
-    }
-  }
+  return findElement(from, tag, (element) => element.nextElementSibling);
 }
 
 function findPrevious(from, tag) {
+  return findElement(from, tag, (element) => element.previousElementSibling);
+}
+
+function findElement(from, tag, dir) {
   var next = from;
-  while ((next = next.previousElementSibling)) {
+  while ((next = dir(next))) {
     if (next.tagName === tag) {
       return next;
     }
