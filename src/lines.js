@@ -45,13 +45,13 @@ async function learnChunk(chunkSize) {
 
 async function learnFragment(size) {
   for (var i = 0; i < size; i++) {
-    await learnLine();
+    await checkLine();
     moveForward(1);
   }
   moveBack(1);
 }
 
-async function learnLine() {
+async function checkLine() {
   if ((await keyPress(".", "m")) === "m") {
     displayCurrentLine();
     await keyPress(".", "m");
