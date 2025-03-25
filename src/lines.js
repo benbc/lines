@@ -29,23 +29,23 @@ async function learnLine() {
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
   const maxLinesBelow = Math.min(fullChunkSize - 1, countLinesBelow());
 
-  for (var linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
-    var linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
-    var chunkSize = linesAbove + 1 + linesBelow;
+  for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
+    let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
+    let chunkSize = linesAbove + 1 + linesBelow;
     await learnChunk(chunkSize);
     moveForward(1);
   }
 }
 
 async function learnChunk(chunkSize) {
-  for (var fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
+  for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     moveBack(fragmentSize - 1);
     await learnFragment(fragmentSize);
   }
 }
 
 async function learnFragment(size) {
-  for (var i = 0; i < size; i++) {
+  for (let i = 0; i < size; i++) {
     await checkLine();
     moveForward(1);
   }
@@ -61,13 +61,13 @@ async function checkLine() {
 }
 
 function moveForward(lines) {
-  for (var i = 0; i < lines; i++) {
+  for (let i = 0; i < lines; i++) {
     selectNextLine();
   }
 }
 
 function moveBack(lines) {
-  for (var i = 0; i < lines; i++) {
+  for (let i = 0; i < lines; i++) {
     selectPreviousLine();
   }
 }
@@ -113,7 +113,7 @@ function findPrevious(from, tag) {
 }
 
 function findElement(from, tag, dir) {
-  var next = from;
+  let next = from;
   while ((next = dir(next))) {
     if (next.tagName === tag) {
       return next;
@@ -174,8 +174,8 @@ function countLinesBelow() {
 }
 
 function countLines(dir) {
-  var count = 0;
-  for (var next = getCurrentLine(); next.tagName === "P"; next = dir(next)) {
+  let count = 0;
+  for (let next = getCurrentLine(); next.tagName === "P"; next = dir(next)) {
     count++;
   }
   return count - 1; // count includes current element
