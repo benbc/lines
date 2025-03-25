@@ -8,11 +8,11 @@
     {% for scene, lines in script %}
         {% set scene_loop = loop %}
         <h1>{{ scene }}</h1>
-        {% for prefix, line in lines -%}
+        {% for prefix, line in lines %}
             <p class="{{ 'current-line' if loop.first and scene_loop.first }}">
                 <span class="prefix">{{ prefix }}</span>
                 {% for element in line -%}
-                    {{ element[0] -}}
+                    {{ element[0] }}
                     {%- if element|length > 1 -%}
                         <span class="detail">{{ element[1:] }}</span>
                     {%- endif %}
