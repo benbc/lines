@@ -16,15 +16,22 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
-        flagLearning();
-        await learnLine();
-        unflagLearning();
+        learn();
         break;
     }
   }
 }
 
-async function learnLine() {
+async function learn() {
+  flagLearning();
+  await learnLine(getCurrentId());
+  unflagLearning();
+}
+
+async function learnLine(id) {
+  line = findById(id);
+  makeCurrent(line);
+
   const fullChunkSize = 5;
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
   const maxLinesBelow = Math.min(fullChunkSize - 1, countLinesBelow());
@@ -137,6 +144,12 @@ function moveSelected(dirFn) {
   selectLine(siblingLine);
 }
 
+function makeCurrent(line) {
+  current = getCurrentLine();
+  deselectLine(current);
+  selectLine(line);
+}
+
 function deselectLine(line) {
   line.classList.remove("current-line");
 }
@@ -179,6 +192,14 @@ function countLines(dir) {
     count++;
   }
   return count - 1; // count includes current element
+}
+
+function getCurrentId() {
+  return getCurrentLine().id;
+}
+
+function findById(id) {
+  return document.getElementById(id);
 }
 
 function getCurrentLine() {
