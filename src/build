@@ -6,6 +6,7 @@
 # ]
 # ///
 
+import zlib
 
 import jinja2
 
@@ -147,7 +148,11 @@ def zip_prefixes(script):
 def render(script, path):
     with open(path) as file_:
         template = jinja2.Template(file_.read())
-    return template.render(script=script)
+    return template.render(script=script, hash=hash)
+
+
+def hash(obj):
+    return zlib.adler32(str(obj).encode('utf-8'))
 
 
 def write(html, path):
