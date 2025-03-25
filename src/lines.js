@@ -186,12 +186,12 @@ function getCurrentLine() {
 }
 
 function flagLearning() {
-  rule = getCurrentLineRule();
+  const rule = getCurrentLineRule();
   rule.style.setProperty("background-color", "linen");
 }
 
 function unflagLearning() {
-  rule = getCurrentLineRule();
+  const rule = getCurrentLineRule();
   rule.style.removeProperty("background-color", "linen");
 }
 
