@@ -1,6 +1,11 @@
+import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
+
 window.addEventListener("load", (_) => control());
 
 async function control() {
+  const db = await openDB();
+  await logSummary(db);
+
   while (true) {
     const event = await keyPress("ArrowLeft", "ArrowRight", "ArrowDown", "l");
     switch (event.key) {
@@ -16,20 +21,40 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
-        learn();
+        learn(db);
         break;
     }
   }
 }
 
-async function learn() {
+async function openDB() {
+  return await idb.openDB("lines", 1, {
+    upgrade(db, oldVersion, newVersion) {
+      console.log(`Upgrading db "lines" from ${oldVersion} to ${newVersion}`);
+      if (oldVersion < 1) {
+        db.createObjectStore("lines", { keyPath: "id" });
+      }
+    },
+  });
+}
+
+async function logSummary(db) {
+  const lines = await db.getAll("lines");
+  console.log(`database holds ${lines.length} lines`);
+}
+
+async function storeId(id, db) {
+  await db.put("lines", { id: id });
+}
+
+async function learn(db) {
   flagLearning();
-  await learnLine(getCurrentId());
+  await learnLine(getCurrentId(), db);
   unflagLearning();
 }
 
-async function learnLine(id) {
-  line = findById(id);
+async function learnLine(id, db) {
+  const line = findById(id);
   makeCurrent(line);
 
   const fullChunkSize = 5;
@@ -39,32 +64,34 @@ async function learnLine(id) {
   for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
     let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
     let chunkSize = linesAbove + 1 + linesBelow;
-    await learnChunk(chunkSize);
+    await learnChunk(chunkSize, db);
     moveForward(1);
   }
 }
 
-async function learnChunk(chunkSize) {
+async function learnChunk(chunkSize, db) {
   for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     moveBack(fragmentSize - 1);
-    await learnFragment(fragmentSize);
+    await learnFragment(fragmentSize, db);
   }
 }
 
-async function learnFragment(size) {
+async function learnFragment(size, db) {
   for (let i = 0; i < size; i++) {
-    await checkLine();
+    await checkLine(db);
     moveForward(1);
   }
   moveBack(1);
 }
 
-async function checkLine() {
+async function checkLine(db) {
   if ((await keyPress(".", "m")).key === "m") {
     displayCurrentLine();
     await keyPress(".", "m");
     hideCurrentLine();
   }
+  const id = getCurrentId();
+  await storeId(id, db);
 }
 
 function moveForward(lines) {
@@ -145,7 +172,7 @@ function moveSelected(dirFn) {
 }
 
 function makeCurrent(line) {
-  current = getCurrentLine();
+  const current = getCurrentLine();
   deselectLine(current);
   selectLine(line);
 }

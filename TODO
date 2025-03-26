@@ -1,4 +1,3 @@
-Store ids of learnt lines
 Add "failed" option
 Add fsrs details to lines (pass/fail)
 Pick lines to learn based on due date
@@ -7,3 +6,4 @@ Add handling of unlearnt lines
 Add easy/hard
 Deploy on internet
 Mobile version
+Prune orphaned lines from database
