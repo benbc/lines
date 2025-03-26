@@ -1,8 +1,8 @@
 Add fsrs details to lines (pass/fail)
 Pick lines to learn based on due date
 Recalculate due dates during learning
-Add handling of unlearnt lines
 Add easy/hard
 Deploy on internet
 Mobile version
 Prune orphaned lines from database
+Less time-consuming mode for lines in "review" state

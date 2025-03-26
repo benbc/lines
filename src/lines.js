@@ -47,10 +47,25 @@ async function storeId(id, db) {
   await db.put("lines", { id: id });
 }
 
+async function getLearntIds(db) {
+  return await db.getAllKeys("lines");
+}
+
 async function learn(db) {
+  const id = await findFirstUnlearnt(db);
+  if (!id) return;
   flagLearning();
-  await learnLine(getCurrentId(), db);
+  await learnLine(id, db);
   unflagLearning();
+}
+
+async function findFirstUnlearnt(db) {
+  const learntIds = await getLearntIds(db);
+  for (let id of getAllIds()) {
+    if (!learntIds.includes(id)) {
+      return id;
+    }
+  }
 }
 
 async function learnLine(id, db) {
@@ -233,8 +248,15 @@ function getCurrentId() {
   return getCurrentLine().id;
 }
 
+function getAllIds() {
+  const lines = Array.from(document.getElementsByTagName("P"));
+  return lines.map((e) => e.id);
+}
+
 function findById(id) {
-  return document.getElementById(id);
+  const line = document.getElementById(id);
+  console.assert(line);
+  return line;
 }
 
 function getCurrentLine() {
