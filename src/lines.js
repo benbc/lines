@@ -85,13 +85,21 @@ async function learnFragment(size, db) {
 }
 
 async function checkLine(db) {
-  if ((await keyPress(".", "m")).key === "m") {
+  const remembered = await checkRemembered();
+  if (remembered) {
+    const id = getCurrentId();
+    await storeId(id, db);
+  }
+}
+
+async function checkRemembered() {
+  var key = (await keyPress(".", ",", "m")).key;
+  if (key === "m") {
     displayCurrentLine();
-    await keyPress(".", "m");
+    key = (await keyPress(".", ",")).key;
     hideCurrentLine();
   }
-  const id = getCurrentId();
-  await storeId(id, db);
+  return key === ".";
 }
 
 function moveForward(lines) {
