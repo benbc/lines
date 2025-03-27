@@ -6,6 +6,7 @@ async function control() {
   const db = await openDB();
   await logSummary(db);
   const scheduler = new Scheduler(db, getAllIds());
+  const navigator = new Navigator();
 
   while (true) {
     const event = await keyPress("ArrowLeft", "ArrowRight", "ArrowDown", "l");
@@ -22,7 +23,7 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
-        learn(scheduler);
+        learn(scheduler, navigator);
         break;
     }
   }
@@ -69,16 +70,16 @@ async function logSummary(db) {
   console.log(`database holds ${lines.length} lines`);
 }
 
-async function learn(scheduler) {
+async function learn(scheduler, navigator) {
   const id = await scheduler.findFirstUnlearnt();
   if (!id) return;
   flagLearning();
-  await learnLine(id, scheduler);
+  await learnLine(id, scheduler, navigator);
   unflagLearning();
 }
 
-async function learnLine(id, scheduler) {
-  const line = findById(id);
+async function learnLine(id, scheduler, navigator) {
+  const line = navigator.findById(id);
   makeCurrent(line);
 
   const fullChunkSize = 5;
@@ -262,12 +263,6 @@ function getAllIds() {
   return lines.map((e) => e.id);
 }
 
-function findById(id) {
-  const line = document.getElementById(id);
-  console.assert(line);
-  return line;
-}
-
 function getCurrentLine() {
   return document.querySelector("p.current-line");
 }
@@ -286,4 +281,12 @@ function getCurrentLineRule() {
   return [...document.styleSheets[0].cssRules].find(
     (r) => r.selectorText === ".current-line",
   );
+}
+
+class Navigator {
+  findById(id) {
+    const line = document.getElementById(id);
+    console.assert(line);
+    return line;
+  }
 }
