@@ -5,6 +5,7 @@ window.addEventListener("load", (_) => control());
 async function control() {
   const db = await openDB();
   await logSummary(db);
+  const scheduler = new Scheduler(db, getAllIds());
 
   while (true) {
     const event = await keyPress("ArrowLeft", "ArrowRight", "ArrowDown", "l");
@@ -21,9 +22,34 @@ async function control() {
         toggleLineDisplay();
         break;
       case "l":
-        learn(db);
+        learn(scheduler);
         break;
     }
+  }
+}
+
+class Scheduler {
+  constructor(db, allIds) {
+    this.db = db;
+    this.allIds = allIds;
+  }
+
+  async findFirstUnlearnt() {
+    const learntIds = await this.getLearntIds();
+    for (let id of this.allIds) {
+      if (!learntIds.includes(id)) {
+        return id;
+      }
+    }
+    console.log("Nothing to learn");
+  }
+
+  async getLearntIds() {
+    return await this.db.getAllKeys("lines");
+  }
+
+  async storeId(id) {
+    await this.db.put("lines", { id: id });
   }
 }
 
@@ -43,32 +69,15 @@ async function logSummary(db) {
   console.log(`database holds ${lines.length} lines`);
 }
 
-async function storeId(id, db) {
-  await db.put("lines", { id: id });
-}
-
-async function getLearntIds(db) {
-  return await db.getAllKeys("lines");
-}
-
-async function learn(db) {
-  const id = await findFirstUnlearnt(db);
+async function learn(scheduler) {
+  const id = await scheduler.findFirstUnlearnt();
   if (!id) return;
   flagLearning();
-  await learnLine(id, db);
+  await learnLine(id, scheduler);
   unflagLearning();
 }
 
-async function findFirstUnlearnt(db) {
-  const learntIds = await getLearntIds(db);
-  for (let id of getAllIds()) {
-    if (!learntIds.includes(id)) {
-      return id;
-    }
-  }
-}
-
-async function learnLine(id, db) {
+async function learnLine(id, scheduler) {
   const line = findById(id);
   makeCurrent(line);
 
@@ -79,31 +88,31 @@ async function learnLine(id, db) {
   for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
     let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
     let chunkSize = linesAbove + 1 + linesBelow;
-    await learnChunk(chunkSize, db);
+    await learnChunk(chunkSize, scheduler);
     moveForward(1);
   }
 }
 
-async function learnChunk(chunkSize, db) {
+async function learnChunk(chunkSize, scheduler) {
   for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     moveBack(fragmentSize - 1);
-    await learnFragment(fragmentSize, db);
+    await learnFragment(fragmentSize, scheduler);
   }
 }
 
-async function learnFragment(size, db) {
+async function learnFragment(size, scheduler) {
   for (let i = 0; i < size; i++) {
-    await checkLine(db);
+    await checkLine(scheduler);
     moveForward(1);
   }
   moveBack(1);
 }
 
-async function checkLine(db) {
+async function checkLine(scheduler) {
   const remembered = await checkRemembered();
   if (remembered) {
     const id = getCurrentId();
-    await storeId(id, db);
+    await scheduler.storeId(id);
   }
 }
 
