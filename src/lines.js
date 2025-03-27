@@ -71,15 +71,15 @@ async function logSummary(db) {
 }
 
 async function learn(scheduler, navigator) {
-  const id = await scheduler.findFirstUnlearnt();
-  if (!id) return;
+  const line = await scheduler.findFirstUnlearnt();
+  if (!line) return;
   flagLearning();
-  await learnLine(id, scheduler, navigator);
+  await learnLine(line, scheduler, navigator);
   unflagLearning();
 }
 
-async function learnLine(id, scheduler, navigator) {
-  navigator.makeCurrent(id);
+async function learnLine(line, scheduler, navigator) {
+  navigator.makeCurrent(line);
 
   const fullChunkSize = 5;
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
@@ -261,12 +261,12 @@ function getCurrentLineRule() {
 }
 
 class Navigator {
-  makeCurrent(id) {
-    const line = document.getElementById(id);
+  makeCurrent(line) {
+    const element = document.getElementById(line);
     console.assert(line);
     const current = getCurrentLine();
     deselectLine(current);
-    selectLine(line);
+    selectLine(element);
   }
 
   moveForward(lines) {
