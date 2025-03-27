@@ -102,16 +102,16 @@ async function learnChunk(chunkSize, scheduler, navigator) {
 
 async function learnFragment(size, scheduler, navigator) {
   for (let i = 0; i < size; i++) {
-    await checkLine(scheduler);
+    await checkLine(scheduler, navigator);
     navigator.moveForward(1);
   }
   navigator.moveBack(1);
 }
 
-async function checkLine(scheduler) {
+async function checkLine(scheduler, navigator) {
   const remembered = await checkRemembered();
   if (remembered) {
-    const id = getCurrentId();
+    const id = navigator.getCurrent();
     await scheduler.storeId(id);
   }
 }
@@ -235,10 +235,6 @@ function countLines(dir) {
   return count - 1; // count includes current element
 }
 
-function getCurrentId() {
-  return getCurrentLine().id;
-}
-
 function getAllIds() {
   const lines = Array.from(document.getElementsByTagName("P"));
   return lines.map((e) => e.id);
@@ -283,5 +279,9 @@ class Navigator {
     for (let i = 0; i < lines; i++) {
       selectPreviousLine();
     }
+  }
+
+  getCurrent() {
+    return getCurrentLine().id;
   }
 }
