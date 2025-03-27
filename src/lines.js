@@ -79,8 +79,7 @@ async function learn(scheduler, navigator) {
 }
 
 async function learnLine(id, scheduler, navigator) {
-  const line = navigator.findById(id);
-  makeCurrent(line);
+  navigator.makeCurrent(id);
 
   const fullChunkSize = 5;
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
@@ -204,12 +203,6 @@ function moveSelected(dirFn) {
   selectLine(siblingLine);
 }
 
-function makeCurrent(line) {
-  const current = getCurrentLine();
-  deselectLine(current);
-  selectLine(line);
-}
-
 function deselectLine(line) {
   line.classList.remove("current-line");
 }
@@ -284,9 +277,11 @@ function getCurrentLineRule() {
 }
 
 class Navigator {
-  findById(id) {
+  makeCurrent(id) {
     const line = document.getElementById(id);
     console.assert(line);
-    return line;
+    const current = getCurrentLine();
+    deselectLine(current);
+    selectLine(line);
   }
 }
