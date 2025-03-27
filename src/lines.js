@@ -95,7 +95,7 @@ async function learnLine(id, scheduler, navigator) {
 
 async function learnChunk(chunkSize, scheduler, navigator) {
   for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
-    moveBack(fragmentSize - 1);
+    navigator.moveBack(fragmentSize - 1);
     await learnFragment(fragmentSize, scheduler, navigator);
   }
 }
@@ -105,7 +105,7 @@ async function learnFragment(size, scheduler, navigator) {
     await checkLine(scheduler);
     navigator.moveForward(1);
   }
-  moveBack(1);
+  navigator.moveBack(1);
 }
 
 async function checkLine(scheduler) {
@@ -124,12 +124,6 @@ async function checkRemembered() {
     hideCurrentLine();
   }
   return key === ".";
-}
-
-function moveBack(lines) {
-  for (let i = 0; i < lines; i++) {
-    selectPreviousLine();
-  }
 }
 
 async function keyPress(...expected) {
@@ -282,6 +276,12 @@ class Navigator {
   moveForward(lines) {
     for (let i = 0; i < lines; i++) {
       selectNextLine();
+    }
+  }
+
+  moveBack(lines) {
+    for (let i = 0; i < lines; i++) {
+      selectPreviousLine();
     }
   }
 }
