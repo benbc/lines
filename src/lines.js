@@ -9,23 +9,8 @@ async function control() {
   const navigator = new Navigator();
 
   while (true) {
-    const event = await keyPress("ArrowLeft", "ArrowRight", "ArrowDown", "l");
-    switch (event.key) {
-      case "ArrowLeft":
-        if (event.ctrlKey) previousScene();
-        else selectPreviousLine();
-        break;
-      case "ArrowRight":
-        if (event.ctrlKey) nextScene();
-        else selectNextLine();
-        break;
-      case "ArrowDown":
-        toggleLineDisplay();
-        break;
-      case "l":
-        learn(scheduler, navigator);
-        break;
-    }
+    await keyPress("l");
+    await learn(scheduler, navigator);
   }
 }
 
@@ -138,43 +123,6 @@ async function keyPress(...expected) {
   });
 }
 
-function nextScene() {
-  return moveScene(findNext);
-}
-
-function previousScene() {
-  return moveScene(findPrevious);
-}
-
-function moveScene(dir) {
-  const currentLine = getCurrentLine();
-  const currentHeading = findPrevious(currentLine, "H1");
-
-  const heading = dir(currentHeading, "H1");
-  if (!heading) return;
-
-  const firstLine = findNext(heading, "P");
-  deselectLine(currentLine);
-  selectLine(firstLine);
-}
-
-function findNext(from, tag) {
-  return findElement(from, tag, (element) => element.nextElementSibling);
-}
-
-function findPrevious(from, tag) {
-  return findElement(from, tag, (element) => element.previousElementSibling);
-}
-
-function findElement(from, tag, dir) {
-  let next = from;
-  while ((next = dir(next))) {
-    if (next.tagName === tag) {
-      return next;
-    }
-  }
-}
-
 function selectNextLine() {
   moveSelected((line) => line.nextElementSibling);
 }
@@ -201,14 +149,6 @@ function selectLine(line) {
     behavior: "smooth",
     block: "center",
   });
-}
-
-function toggleLineDisplay() {
-  if (getCurrentLine().classList.contains("display")) {
-    hideCurrentLine();
-  } else {
-    displayCurrentLine();
-  }
 }
 
 function displayCurrentLine() {

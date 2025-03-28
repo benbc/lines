@@ -1,3 +1,7 @@
+Make line highlighting permanent
+Change Navigator to Script abstraction
+Introduce chunk and fragment objects
+
 Add fsrs details to lines (pass/fail)
 Pick lines to learn based on due date
 Recalculate due dates during learning
