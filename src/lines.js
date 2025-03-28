@@ -58,9 +58,7 @@ async function logSummary(db) {
 async function learn(scheduler, navigator) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
-  flagLearning();
   await learnLine(line, scheduler, navigator);
-  unflagLearning();
 }
 
 async function learnLine(line, scheduler, navigator) {
@@ -182,22 +180,6 @@ function getAllIds() {
 
 function getCurrentLine() {
   return document.querySelector("p.current-line");
-}
-
-function flagLearning() {
-  const rule = getCurrentLineRule();
-  rule.style.setProperty("background-color", "linen");
-}
-
-function unflagLearning() {
-  const rule = getCurrentLineRule();
-  rule.style.removeProperty("background-color", "linen");
-}
-
-function getCurrentLineRule() {
-  return [...document.styleSheets[0].cssRules].find(
-    (r) => r.selectorText === ".current-line",
-  );
 }
 
 class Navigator {
