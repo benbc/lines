@@ -5,8 +5,8 @@ window.addEventListener("load", (_) => control());
 async function control() {
   const db = await openDB();
   await logSummary(db);
-  const scheduler = new Scheduler(db, getAllIds());
   const script = new Script();
+  const scheduler = new Scheduler(db, script.getAllIds());
 
   while (true) {
     await keyPress("l");
@@ -121,12 +121,12 @@ async function keyPress(...expected) {
   });
 }
 
-function getAllIds() {
-  const lines = Array.from(document.getElementsByTagName("P"));
-  return lines.map((e) => e.id);
-}
-
 class Script {
+  getAllIds() {
+    const lines = Array.from(document.getElementsByTagName("P"));
+    return lines.map((e) => e.id);
+  }
+
   makeCurrent(line) {
     const element = document.getElementById(line);
     console.assert(line);
