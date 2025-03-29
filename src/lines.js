@@ -77,15 +77,17 @@ async function learnLine(line, scheduler, script) {
   for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
     let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
     let chunkSize = linesAbove + 1 + linesBelow;
-    await learnChunk(chunkSize, scheduler, script);
+
+    const line = script.getCurrent();
+    const chunk = script.linesUpTo(line, chunkSize);
+    await learnChunk(chunk, scheduler, script);
     script.moveForward(1);
   }
 }
 
-async function learnChunk(chunkSize, scheduler, script) {
-  for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
-    script.moveBack(fragmentSize - 1);
-    const fragment = script.linesFollowing(script.getCurrent(), fragmentSize);
+async function learnChunk(chunk, scheduler, script) {
+  for (let fragmentSize = 1; fragmentSize <= chunk.length; fragmentSize++) {
+    const fragment = chunk.slice(-fragmentSize);
     await learnFragment(fragment, scheduler, script);
   }
 }
@@ -132,14 +134,14 @@ class Script {
     return lines.map((e) => e.id);
   }
 
-  linesFollowing(firstLine, size) {
+  linesUpTo(lastLine, size) {
     const lines = [];
     for (
-      let line = document.getElementById(firstLine);
+      let line = document.getElementById(lastLine);
       lines.length < size;
-      line = line.nextElementSibling
+      line = line.previousElementSibling
     ) {
-      lines.push(line.id);
+      lines.unshift(line.id);
     }
     return lines;
   }
