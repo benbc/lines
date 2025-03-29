@@ -121,34 +121,6 @@ async function keyPress(...expected) {
   });
 }
 
-function selectNextLine() {
-  moveSelected((line) => line.nextElementSibling);
-}
-
-function selectPreviousLine() {
-  moveSelected((line) => line.previousElementSibling);
-}
-
-function moveSelected(dirFn) {
-  const currentLine = getCurrentLine();
-  const siblingLine = dirFn(currentLine);
-  if (!siblingLine || siblingLine.tagName !== "P") return;
-  deselectLine(currentLine);
-  selectLine(siblingLine);
-}
-
-function deselectLine(line) {
-  line.classList.remove("current-line");
-}
-
-function selectLine(line) {
-  line.classList.add("current-line");
-  line.scrollIntoView({
-    behavior: "smooth",
-    block: "center",
-  });
-}
-
 function displayCurrentLine() {
   getCurrentLine().classList.add("display");
 }
@@ -187,23 +159,51 @@ class Navigator {
     const element = document.getElementById(line);
     console.assert(line);
     const current = getCurrentLine();
-    deselectLine(current);
-    selectLine(element);
+    this.#deselectLine(current);
+    this.#selectLine(element);
   }
 
   moveForward(lines) {
     for (let i = 0; i < lines; i++) {
-      selectNextLine();
+      this.#selectNextLine();
     }
   }
 
   moveBack(lines) {
     for (let i = 0; i < lines; i++) {
-      selectPreviousLine();
+      this.#selectPreviousLine();
     }
   }
 
   getCurrent() {
     return getCurrentLine().id;
+  }
+
+  #selectNextLine() {
+    this.#moveSelected((line) => line.nextElementSibling);
+  }
+
+  #selectPreviousLine() {
+    this.#moveSelected((line) => line.previousElementSibling);
+  }
+
+  #moveSelected(dirFn) {
+    const currentLine = getCurrentLine();
+    const siblingLine = dirFn(currentLine);
+    if (!siblingLine || siblingLine.tagName !== "P") return;
+    this.#deselectLine(currentLine);
+    this.#selectLine(siblingLine);
+  }
+
+  #deselectLine(line) {
+    line.classList.remove("current-line");
+  }
+
+  #selectLine(line) {
+    line.classList.add("current-line");
+    line.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   }
 }
