@@ -85,16 +85,16 @@ async function learnLine(line, scheduler, script) {
 async function learnChunk(chunkSize, scheduler, script) {
   for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
     script.moveBack(fragmentSize - 1);
-    await learnFragment(fragmentSize, scheduler, script);
+    const fragment = script.linesFollowing(fragmentSize);
+    await learnFragment(fragment, scheduler, script);
   }
 }
 
-async function learnFragment(size, scheduler, script) {
-  for (let i = 0; i < size; i++) {
+async function learnFragment(fragment, scheduler, script) {
+  for (const line of fragment) {
+    script.makeCurrent(line);
     await checkLine(scheduler, script);
-    script.moveForward(1);
   }
-  script.moveBack(1);
 }
 
 async function checkLine(scheduler, script) {
@@ -131,6 +131,18 @@ class Script {
   getAllLines() {
     const lines = Array.from(document.getElementsByTagName("P"));
     return lines.map((e) => e.id);
+  }
+
+  linesFollowing(size) {
+    const lines = [];
+    for (
+      let line = this.#getCurrentLine();
+      lines.length < size;
+      line = line.nextElementSibling
+    ) {
+      lines.push(line.id);
+    }
+    return lines;
   }
 
   makeCurrent(line) {
