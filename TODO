@@ -1,6 +1,4 @@
-Change Navigator to Script abstraction
-Introduce chunk and fragment objects
-
+Chase down weirdness where short chunks learn fragments that mostly don't include the line
 Add fsrs details to lines (pass/fail)
 Pick lines to learn based on due date
 Recalculate due dates during learning
