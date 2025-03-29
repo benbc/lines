@@ -92,15 +92,14 @@ async function learnChunk(chunkSize, scheduler, script) {
 
 async function learnFragment(fragment, scheduler, script) {
   for (const line of fragment) {
-    script.makeCurrent(line);
-    await checkLine(scheduler, script);
+    await checkLine(line, scheduler, script);
   }
 }
 
-async function checkLine(scheduler, script) {
+async function checkLine(line, scheduler, script) {
+  script.makeCurrent(line);
   const remembered = await checkRemembered(script);
   if (remembered) {
-    const line = script.getCurrent();
     await scheduler.storeLine(line);
   }
 }
