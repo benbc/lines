@@ -3,14 +3,22 @@ import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
 window.addEventListener("load", (_) => control());
 
 async function control() {
-  const db = await openDB();
-  await logSummary(db);
+  let db = await openDB();
   const script = new Script();
   const scheduler = new Scheduler(db, script.getAllLines());
 
   while (true) {
-    await keyPress("l");
-    await learn(scheduler, script);
+    await logSummary(db);
+
+    const event = await keyPress("l", "d");
+    if (event.key === "l") {
+      await learn(scheduler, script);
+      console.log("Done learning");
+    } else if (event.key === "d") {
+      await deleteDB(db);
+      db = await openDB();
+      scheduler.db = db;
+    }
   }
 }
 
@@ -48,6 +56,11 @@ async function openDB() {
       }
     },
   });
+}
+
+async function deleteDB(db) {
+  await db.close();
+  await idb.deleteDB(db.name);
 }
 
 async function logSummary(db) {
