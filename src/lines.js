@@ -65,8 +65,14 @@ async function learnLine(line, scheduler, script) {
   script.makeCurrent(line);
 
   const fullChunkSize = 5;
-  const maxLinesAbove = Math.min(fullChunkSize - 1, script.countLinesAbove());
-  const maxLinesBelow = Math.min(fullChunkSize - 1, script.countLinesBelow());
+  const maxLinesAbove = Math.min(
+    fullChunkSize - 1,
+    script.countLinesAbove(line),
+  );
+  const maxLinesBelow = Math.min(
+    fullChunkSize - 1,
+    script.countLinesBelow(line),
+  );
 
   for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
     let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
@@ -151,12 +157,12 @@ class Script {
     return this.#getCurrentLine().id;
   }
 
-  countLinesAbove() {
-    return this.#countLines((line) => line.previousElementSibling);
+  countLinesAbove(line) {
+    return this.#countLines(line, (l) => l.previousElementSibling);
   }
 
-  countLinesBelow() {
-    return this.#countLines((line) => line.nextElementSibling);
+  countLinesBelow(line) {
+    return this.#countLines(line, (l) => l.nextElementSibling);
   }
 
   displayCurrentLine() {
@@ -167,13 +173,10 @@ class Script {
     this.#getCurrentLine().classList.remove("display");
   }
 
-  #countLines(dirFn) {
+  #countLines(from, dirFn) {
+    const element = document.getElementById(from);
     let count = 0;
-    for (
-      let line = this.#getCurrentLine();
-      line?.tagName === "P";
-      line = dirFn(line)
-    ) {
+    for (let line = element; line?.tagName === "P"; line = dirFn(line)) {
       count++;
     }
     return count - 1; // exclude current element
