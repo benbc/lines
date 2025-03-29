@@ -126,15 +126,11 @@ function getAllIds() {
   return lines.map((e) => e.id);
 }
 
-function getCurrentLine() {
-  return document.querySelector("p.current-line");
-}
-
 class Script {
   makeCurrent(line) {
     const element = document.getElementById(line);
     console.assert(line);
-    const current = getCurrentLine();
+    const current = this.#getCurrentLine();
     this.#deselectLine(current);
     this.#selectLine(element);
   }
@@ -152,7 +148,7 @@ class Script {
   }
 
   getCurrent() {
-    return getCurrentLine().id;
+    return this.#getCurrentLine().id;
   }
 
   countLinesAbove() {
@@ -164,17 +160,17 @@ class Script {
   }
 
   displayCurrentLine() {
-    getCurrentLine().classList.add("display");
+    this.#getCurrentLine().classList.add("display");
   }
 
   hideCurrentLine() {
-    getCurrentLine().classList.remove("display");
+    this.#getCurrentLine().classList.remove("display");
   }
 
   #countLines(dirFn) {
     let count = 0;
     for (
-      let line = getCurrentLine();
+      let line = this.#getCurrentLine();
       line?.tagName === "P";
       line = dirFn(line)
     ) {
@@ -192,7 +188,7 @@ class Script {
   }
 
   #moveSelected(dirFn) {
-    const currentLine = getCurrentLine();
+    const currentLine = this.#getCurrentLine();
     const siblingLine = dirFn(currentLine);
     if (!siblingLine || siblingLine.tagName !== "P") return;
     this.#deselectLine(currentLine);
@@ -209,5 +205,9 @@ class Script {
       behavior: "smooth",
       block: "center",
     });
+  }
+
+  #getCurrentLine() {
+    return document.querySelector("p.current-line");
   }
 }
