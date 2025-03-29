@@ -75,21 +75,13 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(line, scheduler, script) {
-  const fullChunkSize = 5;
-  const maxLinesAbove = Math.min(
-    fullChunkSize - 1,
-    script.countLinesAbove(line),
-  );
-  const maxLinesBelow = Math.min(
-    fullChunkSize - 1,
-    script.countLinesBelow(line),
-  );
+  const chunkSize = 5;
+  const allLines = script.linesAround(line, chunkSize);
+  const numChunks = allLines.length - chunkSize + 1;
 
-  const allLines = script.linesAround(line, maxLinesAbove, maxLinesBelow);
   const chunks = [];
-  const numChunks = allLines.length - fullChunkSize + 1;
   for (
-    let start = 0, end = fullChunkSize;
+    let start = 0, end = chunkSize;
     chunks.length < numChunks;
     start++, end++
   ) {
@@ -150,13 +142,13 @@ class Script {
     return lines.map((e) => e.id);
   }
 
-  linesAround(centre, before, after) {
+  linesAround(centre, count) {
     const centreLine = document.getElementById(centre);
 
     const linesBefore = [];
     for (
       let line = centreLine.previousElementSibling;
-      linesBefore.length < before;
+      linesBefore.length < count && line.tagName === "P";
       line = line.previousElementSibling
     ) {
       linesBefore.unshift(line.id);
@@ -165,7 +157,7 @@ class Script {
     const linesAfter = [];
     for (
       let line = centreLine.nextElementSibling;
-      linesAfter.length < after;
+      linesAfter.length < count && line.tagName === "P";
       line = line.nextElementSibling
     ) {
       linesAfter.push(line.id);
