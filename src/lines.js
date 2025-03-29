@@ -92,19 +92,19 @@ async function learnFragment(size, scheduler, script) {
 }
 
 async function checkLine(scheduler, script) {
-  const remembered = await checkRemembered();
+  const remembered = await checkRemembered(script);
   if (remembered) {
     const id = script.getCurrent();
     await scheduler.storeId(id);
   }
 }
 
-async function checkRemembered() {
+async function checkRemembered(script) {
   var key = (await keyPress(".", ",", "m")).key;
   if (key === "m") {
-    displayCurrentLine();
+    script.displayCurrentLine();
     key = (await keyPress(".", ",")).key;
-    hideCurrentLine();
+    script.hideCurrentLine();
   }
   return key === ".";
 }
@@ -119,14 +119,6 @@ async function keyPress(...expected) {
     };
     document.addEventListener("keydown", handleKeyPress);
   });
-}
-
-function displayCurrentLine() {
-  getCurrentLine().classList.add("display");
-}
-
-function hideCurrentLine() {
-  getCurrentLine().classList.remove("display");
 }
 
 function getAllIds() {
@@ -169,6 +161,14 @@ class Script {
 
   countLinesBelow() {
     return this.#countLines((line) => line.nextElementSibling);
+  }
+
+  displayCurrentLine() {
+    getCurrentLine().classList.add("display");
+  }
+
+  hideCurrentLine() {
+    getCurrentLine().classList.remove("display");
   }
 
   #countLines(dirFn) {
