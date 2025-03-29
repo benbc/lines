@@ -6,7 +6,7 @@ async function control() {
   const db = await openDB();
   await logSummary(db);
   const script = new Script();
-  const scheduler = new Scheduler(db, script.getAllIds());
+  const scheduler = new Scheduler(db, script.getAllLines());
 
   while (true) {
     await keyPress("l");
@@ -15,27 +15,27 @@ async function control() {
 }
 
 class Scheduler {
-  constructor(db, allIds) {
+  constructor(db, allLines) {
     this.db = db;
-    this.allIds = allIds;
+    this.allLines = allLines;
   }
 
   async findFirstUnlearnt() {
-    const learntIds = await this.getLearntIds();
-    for (let id of this.allIds) {
-      if (!learntIds.includes(id)) {
-        return id;
+    const learntLines = await this.getLearntLines();
+    for (let line of this.allLines) {
+      if (!learntLines.includes(line)) {
+        return line;
       }
     }
     console.log("Nothing to learn");
   }
 
-  async getLearntIds() {
+  async getLearntLines() {
     return await this.db.getAllKeys("lines");
   }
 
-  async storeId(id) {
-    await this.db.put("lines", { id: id });
+  async storeLine(line) {
+    await this.db.put("lines", { id: line });
   }
 }
 
@@ -94,8 +94,8 @@ async function learnFragment(size, scheduler, script) {
 async function checkLine(scheduler, script) {
   const remembered = await checkRemembered(script);
   if (remembered) {
-    const id = script.getCurrent();
-    await scheduler.storeId(id);
+    const line = script.getCurrent();
+    await scheduler.storeLine(line);
   }
 }
 
@@ -122,7 +122,7 @@ async function keyPress(...expected) {
 }
 
 class Script {
-  getAllIds() {
+  getAllLines() {
     const lines = Array.from(document.getElementsByTagName("P"));
     return lines.map((e) => e.id);
   }
