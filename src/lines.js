@@ -145,11 +145,8 @@ class Script {
   }
 
   makeCurrent(line) {
-    const element = document.getElementById(line);
-    console.assert(line);
-    const current = this.#getCurrentLine();
-    this.#deselectLine(current);
-    this.#selectLine(element);
+    this.#deselectLine(this.#getCurrentLine());
+    this.#selectLine(document.getElementById(line));
   }
 
   moveForward(lines) {
