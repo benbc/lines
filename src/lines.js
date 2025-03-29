@@ -6,11 +6,11 @@ async function control() {
   const db = await openDB();
   await logSummary(db);
   const scheduler = new Scheduler(db, getAllIds());
-  const navigator = new Navigator();
+  const script = new Script();
 
   while (true) {
     await keyPress("l");
-    await learn(scheduler, navigator);
+    await learn(scheduler, script);
   }
 }
 
@@ -55,14 +55,14 @@ async function logSummary(db) {
   console.log(`database holds ${lines.length} lines`);
 }
 
-async function learn(scheduler, navigator) {
+async function learn(scheduler, script) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
-  await learnLine(line, scheduler, navigator);
+  await learnLine(line, scheduler, script);
 }
 
-async function learnLine(line, scheduler, navigator) {
-  navigator.makeCurrent(line);
+async function learnLine(line, scheduler, script) {
+  script.makeCurrent(line);
 
   const fullChunkSize = 5;
   const maxLinesAbove = Math.min(fullChunkSize - 1, countLinesAbove());
@@ -71,30 +71,30 @@ async function learnLine(line, scheduler, navigator) {
   for (let linesAbove = maxLinesAbove; linesAbove >= 0; linesAbove--) {
     let linesBelow = Math.min(fullChunkSize - 1 - linesAbove, maxLinesBelow);
     let chunkSize = linesAbove + 1 + linesBelow;
-    await learnChunk(chunkSize, scheduler, navigator);
-    navigator.moveForward(1);
+    await learnChunk(chunkSize, scheduler, script);
+    script.moveForward(1);
   }
 }
 
-async function learnChunk(chunkSize, scheduler, navigator) {
+async function learnChunk(chunkSize, scheduler, script) {
   for (let fragmentSize = 1; fragmentSize <= chunkSize; fragmentSize++) {
-    navigator.moveBack(fragmentSize - 1);
-    await learnFragment(fragmentSize, scheduler, navigator);
+    script.moveBack(fragmentSize - 1);
+    await learnFragment(fragmentSize, scheduler, script);
   }
 }
 
-async function learnFragment(size, scheduler, navigator) {
+async function learnFragment(size, scheduler, script) {
   for (let i = 0; i < size; i++) {
-    await checkLine(scheduler, navigator);
-    navigator.moveForward(1);
+    await checkLine(scheduler, script);
+    script.moveForward(1);
   }
-  navigator.moveBack(1);
+  script.moveBack(1);
 }
 
-async function checkLine(scheduler, navigator) {
+async function checkLine(scheduler, script) {
   const remembered = await checkRemembered();
   if (remembered) {
-    const id = navigator.getCurrent();
+    const id = script.getCurrent();
     await scheduler.storeId(id);
   }
 }
@@ -154,7 +154,7 @@ function getCurrentLine() {
   return document.querySelector("p.current-line");
 }
 
-class Navigator {
+class Script {
   makeCurrent(line) {
     const element = document.getElementById(line);
     console.assert(line);
