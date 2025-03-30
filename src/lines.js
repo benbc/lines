@@ -30,6 +30,17 @@ class Scheduler {
     this.fsrs = tsfsrs.fsrs();
   }
 
+  async findEarliestOverDue() {
+    const earliest = await this.db.getFromIndex(
+      "lines",
+      "by-due",
+      IDBKeyRange.lowerBound(new Date(0)),
+    );
+    if (earliest && earliest.due < new Date()) {
+      return earliest.id;
+    }
+  }
+
   async findFirstUnlearnt() {
     const learntLines = await this.#getLearntLines();
     for (let line of this.allLines) {
@@ -68,7 +79,8 @@ async function openDB() {
     upgrade(db, oldVersion, newVersion) {
       console.log(`Upgrading db "lines" from ${oldVersion} to ${newVersion}`);
       if (oldVersion < 1) {
-        db.createObjectStore("lines", { keyPath: "id" });
+        const store = db.createObjectStore("lines", { keyPath: "id" });
+        store.createIndex("by-due", "due");
       }
     },
   });
@@ -88,7 +100,9 @@ async function logSummary(db) {
 }
 
 async function learn(scheduler, script) {
-  const line = await scheduler.findFirstUnlearnt();
+  const line =
+    (await scheduler.findEarliestOverDue()) ||
+    (await scheduler.findFirstUnlearnt());
   if (!line) return;
   await learnLine(line, scheduler, script);
 }
