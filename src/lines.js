@@ -75,17 +75,12 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(line, scheduler, script) {
-  const chunkSize = 5;
-  const chunk = script.linesUpTo(line, chunkSize);
+  const chunk = new Chunk(line, script);
   await learnChunk(chunk, scheduler, script);
 }
 
 async function learnChunk(chunk, scheduler, script) {
-  const fragments = [];
-  for (let fragmentSize = 1; fragmentSize <= chunk.length; fragmentSize++) {
-    fragments.push(chunk.slice(-fragmentSize));
-  }
-  for (let fragment of fragments) {
+  for (const fragment of chunk.fragments) {
     await learnFragment(fragment, scheduler, script);
   }
 }
@@ -113,6 +108,18 @@ async function checkRemembered(script) {
   }
   return key === ".";
 }
+
+class Chunk {
+  constructor(line, script) {
+    this.lines = script.linesUpTo(line, Chunk.size);
+  }
+
+  get fragments() {
+    const lengths = range(this.lines.length).map((i) => i + 1);
+    return lengths.map((i) => this.lines.slice(-i));
+  }
+}
+Chunk.size = 5;
 
 async function keyPress(...expected) {
   return new Promise((resolve) => {
@@ -224,4 +231,8 @@ class Script {
   #getCurrentLine() {
     return document.querySelector("p.current-line");
   }
+}
+
+function range(size) {
+  return Array(size).keys();
 }
