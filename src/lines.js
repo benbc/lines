@@ -117,7 +117,7 @@ async function learnLine(line, scheduler, script) {
 
 async function checkLine(line, scheduler, script) {
   script.highlight(line);
-  const remembered = await checkRemembered(script);
+  const remembered = await checkRemembered(line, script);
   if (remembered) {
     await scheduler.recordPass(line);
   } else {
@@ -126,12 +126,12 @@ async function checkLine(line, scheduler, script) {
   script.unhighlight(line);
 }
 
-async function checkRemembered(script) {
+async function checkRemembered(line, script) {
   var key = (await keyPress(".", ",", "m")).key;
   if (key === "m") {
-    script.displayCurrentLine();
+    script.show(line);
     key = (await keyPress(".", ",")).key;
-    script.hideCurrentLine();
+    script.hide(line);
   }
   return key === ".";
 }
@@ -191,15 +191,13 @@ class Script {
     elem.classList.remove("current-line");
   }
 
-  displayCurrentLine() {
-    this.#getCurrentLine().classList.add("display");
+  show(line) {
+    const elem = document.getElementById(line);
+    elem.classList.add("display");
   }
 
-  hideCurrentLine() {
-    this.#getCurrentLine().classList.remove("display");
-  }
-
-  #getCurrentLine() {
-    return document.querySelector("p.current-line");
+  hide(line) {
+    const elem = document.getElementById(line);
+    elem.classList.remove("display");
   }
 }
