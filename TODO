@@ -7,3 +7,5 @@ Mobile version
 Second pass with fully hidden lines
 Add way of flagging lines failed in rehearsals etc
 Prune orphaned lines from database
+Display summary information
+Indicate hard lines
