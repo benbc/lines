@@ -1,9 +1,10 @@
-Chase down weirdness where short chunks learn fragments that mostly don't include the line
 Add fsrs details to lines (pass/fail)
-Pick lines to learn based on due date
-Recalculate due dates during learning
+Pick due lines, if there are any, before new ones, earliest due date first
+Less time-consuming mode for lines in "review" state
 Add easy/hard
+Add way of flagging lines failed in rehearsals etc
+
 Deploy on internet
 Mobile version
+
 Prune orphaned lines from database
-Less time-consuming mode for lines in "review" state
