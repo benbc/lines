@@ -27,6 +27,7 @@ class Scheduler {
   constructor(db, allLines) {
     this.db = db;
     this.allLines = allLines;
+    this.fsrs = tsfsrs.fsrs();
   }
 
   async findFirstUnlearnt() {
@@ -40,8 +41,20 @@ class Scheduler {
   }
 
   async recordPass(line) {
-    const card = tsfsrs.createEmptyCard(new Date());
-    card.id = line;
+    await this.#recordResult(line, tsfsrs.Rating.Good);
+  }
+
+  async recordFail(line) {
+    await this.#recordResult(line, tsfsrs.Rating.Again);
+  }
+
+  async #recordResult(line, result) {
+    let card = await this.db.get("lines", line);
+    if (!card) {
+      card = tsfsrs.createEmptyCard(new Date());
+      card.id = line;
+    }
+    card = this.fsrs.next(card, new Date(), result).card;
     await this.db.put("lines", card);
   }
 
@@ -68,6 +81,9 @@ async function deleteDB(db) {
 
 async function logSummary(db) {
   const lines = await db.getAll("lines");
+  for (let i = 0; i < lines.length; i++) {
+    console.log(lines[i]);
+  }
   console.log(`database holds ${lines.length} lines`);
 }
 
@@ -90,6 +106,8 @@ async function checkLine(line, scheduler, script) {
   const remembered = await checkRemembered(script);
   if (remembered) {
     await scheduler.recordPass(line);
+  } else {
+    await scheduler.recordFail(line);
   }
 }
 
