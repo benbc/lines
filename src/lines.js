@@ -75,7 +75,7 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(line, scheduler, script) {
-  for (const fragment of new Chunk(line, script).fragments) {
+  for (const fragment of new Chunk(line, script)) {
     for (const line of fragment) {
       await checkLine(line, scheduler, script);
     }
@@ -105,9 +105,10 @@ class Chunk {
     this.lines = script.linesUpTo(line, Chunk.size);
   }
 
-  get fragments() {
-    const lengths = range(this.lines.length).map((i) => i + 1);
-    return lengths.map((i) => this.lines.slice(-i));
+  *[Symbol.iterator]() {
+    for (let i = 1; i <= this.lines.length; i++) {
+      yield this.lines.slice(-i);
+    }
   }
 }
 Chunk.size = 5;
@@ -222,8 +223,4 @@ class Script {
   #getCurrentLine() {
     return document.querySelector("p.current-line");
   }
-}
-
-function range(size) {
-  return Array(size).keys();
 }
