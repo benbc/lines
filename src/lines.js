@@ -81,8 +81,11 @@ async function learnLine(line, scheduler, script) {
 }
 
 async function learnChunk(chunk, scheduler, script) {
+  const fragments = [];
   for (let fragmentSize = 1; fragmentSize <= chunk.length; fragmentSize++) {
-    const fragment = chunk.slice(-fragmentSize);
+    fragments.push(chunk.slice(-fragmentSize));
+  }
+  for (let fragment of fragments) {
     await learnFragment(fragment, scheduler, script);
   }
 }
