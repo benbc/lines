@@ -75,19 +75,10 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(line, scheduler, script) {
-  const chunk = new Chunk(line, script);
-  await learnChunk(chunk, scheduler, script);
-}
-
-async function learnChunk(chunk, scheduler, script) {
-  for (const fragment of chunk.fragments) {
-    await learnFragment(fragment, scheduler, script);
-  }
-}
-
-async function learnFragment(fragment, scheduler, script) {
-  for (const line of fragment) {
-    await checkLine(line, scheduler, script);
+  for (const fragment of new Chunk(line, script).fragments) {
+    for (const line of fragment) {
+      await checkLine(line, scheduler, script);
+    }
   }
 }
 
