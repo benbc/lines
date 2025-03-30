@@ -9,9 +9,7 @@
         {% set scene_loop = loop %}
         <h1>{{ scene }}</h1>
         {% for prefix, line in lines %}
-            {% set id = hash(line) %}
-            {% set class = 'current-line' if loop.first and scene_loop.first %}
-            <p id="{{ id }}" class="{{ class }}">
+            <p id="{{ hash(line) }}">
                 <span class="prefix">{{ prefix }}</span>
                 {% for element in line -%}
                     {{ element[0] }}

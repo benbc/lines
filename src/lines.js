@@ -116,13 +116,14 @@ async function learnLine(line, scheduler, script) {
 }
 
 async function checkLine(line, scheduler, script) {
-  script.makeCurrent(line);
+  script.highlight(line);
   const remembered = await checkRemembered(script);
   if (remembered) {
     await scheduler.recordPass(line);
   } else {
     await scheduler.recordFail(line);
   }
+  script.unhighlight(line);
 }
 
 async function checkRemembered(script) {
@@ -176,9 +177,18 @@ class Script {
     return lines;
   }
 
-  makeCurrent(line) {
-    this.#deselectLine(this.#getCurrentLine());
-    this.#selectLine(document.getElementById(line));
+  highlight(line) {
+    const elem = document.getElementById(line);
+    elem.classList.add("current-line");
+    elem.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
+  unhighlight(line) {
+    const elem = document.getElementById(line);
+    elem.classList.remove("current-line");
   }
 
   displayCurrentLine() {
@@ -187,18 +197,6 @@ class Script {
 
   hideCurrentLine() {
     this.#getCurrentLine().classList.remove("display");
-  }
-
-  #deselectLine(line) {
-    line.classList.remove("current-line");
-  }
-
-  #selectLine(line) {
-    line.classList.add("current-line");
-    line.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
   }
 
   #getCurrentLine() {
