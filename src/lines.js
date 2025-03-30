@@ -76,21 +76,8 @@ async function learn(scheduler, script) {
 
 async function learnLine(line, scheduler, script) {
   const chunkSize = 5;
-  const allLines = script.linesAround(line, chunkSize);
-  const numChunks = allLines.length - chunkSize + 1;
-
-  const chunks = [];
-  for (
-    let start = 0, end = chunkSize;
-    chunks.length < numChunks;
-    start++, end++
-  ) {
-    chunks.push(allLines.slice(start, end));
-  }
-
-  for (let chunk of chunks) {
-    await learnChunk(chunk, scheduler, script);
-  }
+  const chunk = script.linesUpTo(line, chunkSize);
+  await learnChunk(chunk, scheduler, script);
 }
 
 async function learnChunk(chunk, scheduler, script) {
@@ -142,28 +129,19 @@ class Script {
     return lines.map((e) => e.id);
   }
 
-  linesAround(centre, count) {
-    const centreLine = document.getElementById(centre);
+  linesUpTo(end, count) {
+    const endLine = document.getElementById(end);
 
-    const linesBefore = [];
+    const lines = [];
     for (
-      let line = centreLine.previousElementSibling;
-      linesBefore.length < count && line.tagName === "P";
+      let line = endLine;
+      lines.length < count && line.tagName === "P";
       line = line.previousElementSibling
     ) {
-      linesBefore.unshift(line.id);
+      lines.unshift(line.id);
     }
 
-    const linesAfter = [];
-    for (
-      let line = centreLine.nextElementSibling;
-      linesAfter.length < count && line.tagName === "P";
-      line = line.nextElementSibling
-    ) {
-      linesAfter.push(line.id);
-    }
-
-    return linesBefore.concat(centre, linesAfter);
+    return lines;
   }
 
   makeCurrent(line) {
