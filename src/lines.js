@@ -151,61 +151,12 @@ class Script {
     this.#selectLine(document.getElementById(line));
   }
 
-  moveForward(lines) {
-    for (let i = 0; i < lines; i++) {
-      this.#selectNextLine();
-    }
-  }
-
-  moveBack(lines) {
-    for (let i = 0; i < lines; i++) {
-      this.#selectPreviousLine();
-    }
-  }
-
-  getCurrent() {
-    return this.#getCurrentLine().id;
-  }
-
-  countLinesAbove(line) {
-    return this.#countLines(line, (l) => l.previousElementSibling);
-  }
-
-  countLinesBelow(line) {
-    return this.#countLines(line, (l) => l.nextElementSibling);
-  }
-
   displayCurrentLine() {
     this.#getCurrentLine().classList.add("display");
   }
 
   hideCurrentLine() {
     this.#getCurrentLine().classList.remove("display");
-  }
-
-  #countLines(from, dirFn) {
-    const element = document.getElementById(from);
-    let count = 0;
-    for (let line = element; line?.tagName === "P"; line = dirFn(line)) {
-      count++;
-    }
-    return count - 1; // exclude current element
-  }
-
-  #selectNextLine() {
-    this.#moveSelected((line) => line.nextElementSibling);
-  }
-
-  #selectPreviousLine() {
-    this.#moveSelected((line) => line.previousElementSibling);
-  }
-
-  #moveSelected(dirFn) {
-    const currentLine = this.#getCurrentLine();
-    const siblingLine = dirFn(currentLine);
-    if (!siblingLine || siblingLine.tagName !== "P") return;
-    this.#deselectLine(currentLine);
-    this.#selectLine(siblingLine);
   }
 
   #deselectLine(line) {
