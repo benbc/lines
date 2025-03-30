@@ -1,4 +1,5 @@
 import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
+import * as tsfsrs from "https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm";
 
 window.addEventListener("load", (_) => control());
 
@@ -29,7 +30,7 @@ class Scheduler {
   }
 
   async findFirstUnlearnt() {
-    const learntLines = await this.getLearntLines();
+    const learntLines = await this.#getLearntLines();
     for (let line of this.allLines) {
       if (!learntLines.includes(line)) {
         return line;
@@ -38,12 +39,14 @@ class Scheduler {
     console.log("Nothing to learn");
   }
 
-  async getLearntLines() {
-    return await this.db.getAllKeys("lines");
+  async recordPass(line) {
+    const card = tsfsrs.createEmptyCard(new Date());
+    card.id = line;
+    await this.db.put("lines", card);
   }
 
-  async storeLine(line) {
-    await this.db.put("lines", { id: line });
+  async #getLearntLines() {
+    return await this.db.getAllKeys("lines");
   }
 }
 
@@ -86,7 +89,7 @@ async function checkLine(line, scheduler, script) {
   script.makeCurrent(line);
   const remembered = await checkRemembered(script);
   if (remembered) {
-    await scheduler.storeLine(line);
+    await scheduler.recordPass(line);
   }
 }
 
