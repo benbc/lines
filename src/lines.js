@@ -75,7 +75,7 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(line, scheduler, script) {
-  for (const fragment of new Chunk(line, script)) {
+  for (const fragment of chunk(line, script)) {
     for (const line of fragment) {
       await checkLine(line, scheduler, script);
     }
@@ -100,18 +100,13 @@ async function checkRemembered(script) {
   return key === ".";
 }
 
-class Chunk {
-  constructor(line, script) {
-    this.lines = script.linesUpTo(line, Chunk.size);
-  }
-
-  *[Symbol.iterator]() {
-    for (let i = 1; i <= this.lines.length; i++) {
-      yield this.lines.slice(-i);
-    }
+function* chunk(line, script) {
+  const lines = script.linesUpTo(line, chunk.size);
+  for (let i = 1; i <= lines.length; i++) {
+    yield lines.slice(-i);
   }
 }
-Chunk.size = 5;
+chunk.size = 5;
 
 async function keyPress(...expected) {
   return new Promise((resolve) => {
