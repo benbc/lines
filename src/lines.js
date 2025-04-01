@@ -137,23 +137,8 @@ async function review(scheduler, script) {
     if (!(await scheduler.anyDue(linesBefore))) break;
   }
 
-  reviewLines(lines, scheduler, script);
-}
-
-async function reviewLines(lines, scheduler, script) {
-  const showFirst = !(await scheduler.isDue(lines[0]));
-  if (showFirst) {
-    const first = lines[0];
-    script.show(first);
-    lines = lines.slice(1);
-  }
-
   for (let line of lines) {
     await checkLine(line, scheduler, script);
-  }
-
-  if (showFirst) {
-    script.hide(first);
   }
 }
 
