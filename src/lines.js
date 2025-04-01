@@ -2,6 +2,7 @@ import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
 import * as tsfsrs from "https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm";
 
 const Rating = tsfsrs.Rating;
+const State = tsfsrs.State;
 
 window.addEventListener("load", (_) => control());
 
@@ -11,7 +12,7 @@ async function control() {
   const scheduler = new Scheduler(db, script.getAllLines());
 
   while (true) {
-    await logSummary(db);
+    await scheduler.logSummary();
 
     const event = await keyPress("l", "r", "i", "d");
     if (event.key === "l") {
@@ -81,6 +82,33 @@ class Scheduler {
     await this.db.put("lines", card);
   }
 
+  async logSummary() {
+    const lines = await this.db.getAll("lines");
+
+    console.log(
+      `${lines.length} lines (of which ${lines.filter(this.#isCardDue).length} due)`,
+    );
+
+    const states = new Map();
+    for (let line of lines) {
+      let state = State[line.state]; // convert to readable strings
+      if (!states.has(state)) states.set(state, 0);
+      states.set(state, states.get(state) + 1);
+    }
+    console.log("States:");
+    console.log(states);
+
+    let difficulties = new Map();
+    for (let line of lines) {
+      let difficulty = Math.trunc(line.difficulty);
+      if (!difficulties.has(difficulty)) difficulties.set(difficulty, 0);
+      difficulties.set(difficulty, difficulties.get(difficulty) + 1);
+    }
+    difficulties = new Map([...difficulties.entries()].sort());
+    console.log("Difficulties:");
+    console.log(difficulties);
+  }
+
   async #getCard(line) {
     return await this.db.get("lines", line);
   }
@@ -109,11 +137,6 @@ async function openDB() {
 async function deleteDB(db) {
   await db.close();
   await idb.deleteDB(db.name);
-}
-
-async function logSummary(db) {
-  const lines = await db.getAll("lines");
-  console.log(`database holds ${lines.length} lines`);
 }
 
 async function ingest(scheduler, script) {
