@@ -10,6 +10,7 @@ async function control() {
   let db = await openDB();
   const script = new Script();
   const scheduler = new Scheduler(db, script.getAllLines());
+  await scheduler.pruneOrphanedLines();
 
   while (true) {
     await scheduler.logSummary();
@@ -38,6 +39,16 @@ class Scheduler {
     this.db = db;
     this.allLines = allLines;
     this.fsrs = tsfsrs.fsrs();
+  }
+
+  async pruneOrphanedLines() {
+    for (var line of await this.#getLearntLines()) {
+      if (!this.allLines.includes(line)) {
+        // this line has been removed from the script
+        await this.db.delete("lines", line);
+        console.log(`pruned ${line}`);
+      }
+    }
   }
 
   async isDue(line) {
