@@ -1,6 +1,8 @@
 import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
 import * as tsfsrs from "https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm";
 
+const Rating = tsfsrs.Rating;
+
 window.addEventListener("load", (_) => control());
 
 async function control() {
@@ -53,15 +55,7 @@ class Scheduler {
     console.log("Nothing to learn");
   }
 
-  async recordPass(line) {
-    await this.#recordResult(line, tsfsrs.Rating.Good);
-  }
-
-  async recordFail(line) {
-    await this.#recordResult(line, tsfsrs.Rating.Again);
-  }
-
-  async #recordResult(line, result) {
+  async recordResult(line, result) {
     let card = await this.db.get("lines", line);
     if (!card) {
       card = tsfsrs.createEmptyCard(new Date());
@@ -127,23 +121,28 @@ async function learnLine(line, scheduler, script) {
 
 async function checkLine(line, scheduler, script) {
   script.highlight(line);
-  const remembered = await checkRemembered(line, script);
-  if (remembered) {
-    await scheduler.recordPass(line);
-  } else {
-    await scheduler.recordFail(line);
-  }
+  const rating = await getRating(line, script);
+  await scheduler.recordResult(line, rating);
   script.unhighlight(line);
 }
 
-async function checkRemembered(line, script) {
-  var key = (await keyPress(".", ",", "m")).key;
-  if (key === "m") {
+async function getRating(line, script) {
+  const keyMap = {
+    "`": Rating.Again,
+    1: Rating.Hard,
+    2: Rating.Good,
+    3: Rating.Easy,
+  };
+  var key = (await keyPress(...Object.keys(keyMap), " ")).key;
+  if (key === " ") {
     script.show(line);
-    key = (await keyPress(".", ",")).key;
+    key = (await keyPress(...Object.keys(keyMap))).key;
     script.hide(line);
   }
-  return key === ".";
+  console.log(key);
+  console.log(keyMap);
+  console.log(keyMap[key]);
+  return keyMap[key];
 }
 
 function* chunk(line, script) {
