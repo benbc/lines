@@ -13,10 +13,13 @@ async function control() {
   while (true) {
     await logSummary(db);
 
-    const event = await keyPress("l", "i", "d");
+    const event = await keyPress("l", "r", "i", "d");
     if (event.key === "l") {
       await learn(scheduler, script);
       console.log("Done learning");
+    } else if (event.key === "r") {
+      await review(scheduler, script);
+      console.log("Done reviewing");
     } else if (event.key === "i") {
       await ingest(scheduler, script);
       console.log("Done ingesting");
@@ -91,9 +94,6 @@ async function deleteDB(db) {
 
 async function logSummary(db) {
   const lines = await db.getAll("lines");
-  for (let i = 0; i < lines.length; i++) {
-    console.log(lines[i]);
-  }
   console.log(`database holds ${lines.length} lines`);
 }
 
@@ -105,10 +105,25 @@ async function ingest(scheduler, script) {
   }
 }
 
+async function review(scheduler, script) {
+  const dueLine = await scheduler.findEarliestOverDue();
+  let lines = script.linesUpTo(dueLine, 20);
+  const showFirst = lines.length > 2;
+  if (showFirst) {
+    var first = lines[0];
+    script.show(first);
+    lines = lines.slice(1);
+  }
+  for (let line of lines) {
+    await checkLine(line, scheduler, script);
+  }
+  if (showFirst) {
+    script.hide(first);
+  }
+}
+
 async function learn(scheduler, script) {
-  const line =
-    (await scheduler.findEarliestOverDue()) ||
-    (await scheduler.findFirstUnlearnt());
+  const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
   await learnLine(line, scheduler, script);
 }
@@ -141,9 +156,6 @@ async function getRating(line, script) {
     key = (await keyPress(...Object.keys(keyMap))).key;
     script.hide(line);
   }
-  console.log(key);
-  console.log(keyMap);
-  console.log(keyMap[key]);
   return keyMap[key];
 }
 
