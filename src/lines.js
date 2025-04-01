@@ -115,7 +115,9 @@ class Scheduler {
     console.log(states);
 
     let difficulties = new Map();
+    var sum = 0;
     for (let line of lines) {
+      sum += line.difficulty;
       let difficulty = Math.trunc(line.difficulty);
       if (!difficulties.has(difficulty)) difficulties.set(difficulty, 0);
       difficulties.set(difficulty, difficulties.get(difficulty) + 1);
@@ -123,6 +125,7 @@ class Scheduler {
     difficulties = new Map([...difficulties.entries()].sort());
     console.log("Difficulties:");
     console.log(difficulties);
+    console.log(`Average ${(sum / lines.length).toPrecision(2)}`);
   }
 
   async #getCard(line) {
