@@ -83,9 +83,9 @@ class Scheduler {
     console.log("Nothing to learn");
   }
 
-  async needsRelearning(line) {
+  async needsLearning(line) {
     const card = await this.#getCard(line);
-    return card.state == State.Relearning;
+    return [State.Learning, State.Relearning].includes(card.state);
   }
 
   async recordResult(line, result) {
@@ -167,9 +167,8 @@ async function review(scheduler, script) {
   const earliest = await scheduler.findEarliestDue();
   if (!earliest) return;
 
-  if (await scheduler.needsRelearning(earliest)) {
-    console.log("relearning");
-    await learnLine(earliest);
+  if (await scheduler.needsLearning(earliest)) {
+    await learnLine(earliest, scheduler, script);
   } else {
     await reviewLine(earliest, script, scheduler);
   }
