@@ -11,10 +11,12 @@ async function control() {
   while (true) {
     await logSummary(db);
 
-    const event = await keyPress("l", "d");
+    const event = await keyPress("l", "r", "d");
     if (event.key === "l") {
       await learn(scheduler, script);
       console.log("Done learning");
+    } else if (event.key === "r") {
+      await review(scheduler, script);
     } else if (event.key === "d") {
       await deleteDB(db);
       db = await openDB();
@@ -97,6 +99,14 @@ async function logSummary(db) {
     console.log(lines[i]);
   }
   console.log(`database holds ${lines.length} lines`);
+}
+
+async function review(scheduler, script) {
+  for (let i = 0; i < 20; i++) {
+    const line = await scheduler.findFirstUnlearnt();
+    if (!line) return;
+    await checkLine(line, scheduler, script);
+  }
 }
 
 async function learn(scheduler, script) {
