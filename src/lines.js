@@ -13,16 +13,18 @@ async function control() {
   while (true) {
     await logSummary(db);
 
-    const event = await keyPress("l", "r", "d");
+    const event = await keyPress("l", "i", "d");
     if (event.key === "l") {
       await learn(scheduler, script);
       console.log("Done learning");
-    } else if (event.key === "r") {
-      await review(scheduler, script);
+    } else if (event.key === "i") {
+      await ingest(scheduler, script);
+      console.log("Done ingesting");
     } else if (event.key === "d") {
       await deleteDB(db);
       db = await openDB();
       scheduler.db = db;
+      console.log("Deleted database");
     }
   }
 }
@@ -95,7 +97,7 @@ async function logSummary(db) {
   console.log(`database holds ${lines.length} lines`);
 }
 
-async function review(scheduler, script) {
+async function ingest(scheduler, script) {
   for (let i = 0; i < 20; i++) {
     const line = await scheduler.findFirstUnlearnt();
     if (!line) return;
