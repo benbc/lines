@@ -137,6 +137,13 @@ async function review(scheduler, script) {
     if (!(await scheduler.anyDue(linesBefore))) break;
   }
 
+  while (true) {
+    const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
+    if (linesAfter.length == 0) break;
+    if (!(await scheduler.anyDue(linesAfter))) break;
+    lines = lines.concat(linesAfter);
+  }
+
   for (let line of lines) {
     await checkLine(line, scheduler, script);
   }
@@ -215,6 +222,21 @@ class Script {
       line = line.previousElementSibling
     ) {
       lines.unshift(line.id);
+    }
+
+    return lines;
+  }
+
+  linesAfter(start, count) {
+    const startLine = document.getElementById(start);
+
+    const lines = [];
+    for (
+      let line = startLine.nextElementSibling;
+      lines.length < count && line.tagName === "P";
+      line = line.nextElementSibling
+    ) {
+      lines.push(line.id);
     }
 
     return lines;
