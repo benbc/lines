@@ -39,15 +39,26 @@ class Scheduler {
     this.fsrs = tsfsrs.fsrs();
   }
 
-  async findEarliestOverDue() {
+  async isDue(line) {
+    return this.#isCardDue(await this.#getCard(line));
+  }
+
+  async anyDue(lines) {
+    for (let line of lines) {
+      if (await this.isDue(line)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async findEarliestDue() {
     const earliest = await this.db.getFromIndex(
       "lines",
       "by-due",
       IDBKeyRange.lowerBound(new Date(0)),
     );
-    if (earliest && earliest.due < new Date()) {
-      return earliest.id;
-    }
+    if (this.#isCardDue(earliest)) return earliest.id;
   }
 
   async findFirstUnlearnt() {
@@ -61,13 +72,21 @@ class Scheduler {
   }
 
   async recordResult(line, result) {
-    let card = await this.db.get("lines", line);
+    let card = await this.#getCard(line);
     if (!card) {
       card = tsfsrs.createEmptyCard(new Date());
       card.id = line;
     }
     card = this.fsrs.next(card, new Date(), result).card;
     await this.db.put("lines", card);
+  }
+
+  async #getCard(line) {
+    return await this.db.get("lines", line);
+  }
+
+  #isCardDue(card) {
+    return card && card.due < new Date();
   }
 
   async #getLearntLines() {
@@ -106,17 +125,33 @@ async function ingest(scheduler, script) {
 }
 
 async function review(scheduler, script) {
-  const dueLine = await scheduler.findEarliestOverDue();
-  let lines = script.linesUpTo(dueLine, 20);
-  const showFirst = lines.length > 2;
+  const earliest = await scheduler.findEarliestDue();
+  if (!earliest) return;
+
+  let lines = [earliest];
+
+  while (true) {
+    const linesBefore = script.linesBefore(lines[0], 5);
+    if (linesBefore.length == 0) break;
+    lines = linesBefore.concat(lines);
+    if (!(await scheduler.anyDue(linesBefore))) break;
+  }
+
+  reviewLines(lines, scheduler, script);
+}
+
+async function reviewLines(lines, scheduler, script) {
+  const showFirst = !(await scheduler.isDue(lines[0]));
   if (showFirst) {
-    var first = lines[0];
+    const first = lines[0];
     script.show(first);
     lines = lines.slice(1);
   }
+
   for (let line of lines) {
     await checkLine(line, scheduler, script);
   }
+
   if (showFirst) {
     script.hide(first);
   }
@@ -160,7 +195,7 @@ async function getRating(line, script) {
 }
 
 function* chunk(line, script) {
-  const lines = script.linesUpTo(line, chunk.size);
+  const lines = script.linesBefore(line, chunk.size).concat(line);
   for (let i = 1; i <= lines.length; i++) {
     yield lines.slice(-i);
   }
@@ -185,12 +220,12 @@ class Script {
     return lines.map((e) => e.id);
   }
 
-  linesUpTo(end, count) {
+  linesBefore(end, count) {
     const endLine = document.getElementById(end);
 
     const lines = [];
     for (
-      let line = endLine;
+      let line = endLine.previousElementSibling;
       lines.length < count && line.tagName === "P";
       line = line.previousElementSibling
     ) {
