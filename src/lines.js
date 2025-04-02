@@ -105,27 +105,22 @@ class Scheduler {
       `${lines.length} lines (of which ${lines.filter(this.#isCardDue).length} due)`,
     );
 
-    const states = new Map();
-    for (let line of lines) {
-      let state = State[line.state]; // convert to readable strings
-      if (!states.has(state)) states.set(state, 0);
-      states.set(state, states.get(state) + 1);
-    }
+    const states = objMap(
+      partition(lines, (l) => State[l.state]),
+      (ls) => ls.length,
+    );
     console.log("States:");
     console.log(states);
 
-    let difficulties = new Map();
-    var sum = 0;
-    for (let line of lines) {
-      sum += line.difficulty;
-      let difficulty = Math.trunc(line.difficulty);
-      if (!difficulties.has(difficulty)) difficulties.set(difficulty, 0);
-      difficulties.set(difficulty, difficulties.get(difficulty) + 1);
-    }
-    difficulties = new Map([...difficulties.entries()].sort());
+    const difficulties = objMap(
+      partition(lines, (l) => Math.trunc(l.difficulty)),
+      (ls) => ls.length,
+    );
     console.log("Difficulties:");
     console.log(difficulties);
-    console.log(`Average ${(sum / lines.length).toPrecision(2)}`);
+    console.log(
+      `Average ${average(lines.map((l) => l.difficulty)).toPrecision(2)}`,
+    );
   }
 
   async #getCard(line) {
@@ -315,4 +310,24 @@ class Script {
     const elem = document.getElementById(line);
     elem.classList.remove("display");
   }
+}
+
+function partition(arr, fun) {
+  const result = {};
+  for (let x of arr) {
+    const v = fun(x);
+    if (!Object.hasOwn(result, v)) {
+      result[v] = [];
+    }
+    result[v].push(x);
+  }
+  return result;
+}
+
+function objMap(obj, fun) {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, fun(v)]));
+}
+
+function average(nums) {
+  return nums.reduce((acc, val) => acc + val, 0) / nums.length;
 }
