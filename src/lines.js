@@ -13,7 +13,7 @@ async function control() {
   await scheduler.pruneOrphanedLines();
 
   while (true) {
-    await scheduler.logSummary();
+    await scheduler.logStats();
 
     const event = await keyPress("l", "r", "i", "d");
     if (event.key === "l") {
@@ -98,7 +98,7 @@ class Scheduler {
     await this.db.put("lines", card);
   }
 
-  async logSummary() {
+  async logStats() {
     const lines = await this.db.getAll("lines");
 
     console.log(
@@ -121,6 +121,15 @@ class Scheduler {
     console.log(
       `Average ${average(lines.map((l) => l.difficulty)).toPrecision(2)}`,
     );
+
+    const dueDates = objSort(
+      objMap(
+        partition(lines, (l) => l.due.toISOString().slice(0, 10)),
+        (ls) => ls.length,
+      ),
+    );
+    console.log("Due dates:");
+    console.log(dueDates);
   }
 
   async #getCard(line) {
@@ -326,6 +335,10 @@ function partition(arr, fun) {
 
 function objMap(obj, fun) {
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, fun(v)]));
+}
+
+function objSort(obj) {
+  return Object.fromEntries(Object.entries(obj).sort());
 }
 
 function average(nums) {
