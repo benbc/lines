@@ -90,7 +90,7 @@ class Scheduler {
   async recordResult(line, result) {
     let card = await this.#getCard(line);
     if (!card) {
-      card = tsfsrs.createEmptyCard(new Date());
+      card = tsfsrs.createEmptyCard();
       card.id = line;
     }
     card = this.fsrs.next(card, new Date(), result).card;
