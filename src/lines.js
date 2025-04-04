@@ -87,14 +87,42 @@ class Scheduler {
     return [State.Learning, State.Relearning].includes(card.state);
   }
 
-  async recordResult(line, result) {
+  async recordLearning(line) {
     let card = await this.#getCard(line);
     if (!card) {
       card = tsfsrs.createEmptyCard();
       card.id = line;
     }
-    card = this.fsrs.next(card, new Date(), result).card;
-    await this.db.put("lines", card);
+    console.log(card);
+
+    let learnCount;
+    if ([State.New, State.Learning].includes(card.state)) {
+      learnCount = card.reps;
+    } else if (card.state == State.Relearning) {
+      // We add our own state to record how long we've been relearning for
+      if (!card.relearnReps) {
+        card.relearnReps = 0;
+      }
+      learnCount = card.relearnReps;
+      card.relearnReps += 1;
+    } else {
+      console.assert(false);
+    }
+    // This is a bit of a hack to get FSRS to give us a couple of reviews
+    // on the same day, then another review the next day, then put the line
+    // into the standard review flow.
+    const ratings = [Rating.Again, Rating.Hard, Rating.Hard, Rating.Good];
+    if (learnCount >= ratings.length) {
+      learnCount = ratings.length - 1;
+    }
+
+    await this.#updateCard(card, ratings[learnCount]);
+  }
+
+  async recordReview(line, result) {
+    let card = await this.#getCard(line);
+    console.assert(card);
+    this.#updateCard(card, result);
   }
 
   async logStats() {
@@ -131,8 +159,17 @@ class Scheduler {
     console.log(dueDates);
   }
 
+  async #updateCard(card, rating) {
+    const updated = this.fsrs.next(card, new Date(), rating).card;
+    await this.#putCard(updated);
+  }
+
   async #getCard(line) {
     return await this.db.get("lines", line);
+  }
+
+  async #putCard(card) {
+    await this.db.put("lines", card);
   }
 
   #isCardDue(card) {
@@ -191,7 +228,7 @@ async function reviewLine(earliest, script, scheduler) {
 
   for (let line of lines) {
     const rating = await checkLine(line, scheduler, script);
-    await scheduler.recordResult(line, rating);
+    await scheduler.recordReview(line, rating);
   }
 }
 
@@ -205,12 +242,9 @@ async function learnLine(line, scheduler, script) {
   for (const fragment of chunk(line, script)) {
     for (const line of fragment) {
       await checkLine(line, scheduler, script);
-      // We always rate newly-learnt lines as Hard because our learning algorithm shows
-      // them to us repeatedly. If we record all those quick views as Good or Easy,
-      // FSRS will think the line is very easy and won't show it to us again for ages.
-      await scheduler.recordResult(line, Rating.Hard);
     }
   }
+  await scheduler.recordLearning(line);
 }
 
 async function checkLine(line, scheduler, script) {
