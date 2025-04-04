@@ -15,7 +15,7 @@ async function control() {
   while (true) {
     await scheduler.logStats();
 
-    const event = await keyPress("l", "r", "d");
+    const event = await keyPress("l", "r", "d", "e");
     if (event.key === "l") {
       await learn(scheduler, script);
       console.log("Done learning");
@@ -27,6 +27,8 @@ async function control() {
       db = await openDB();
       scheduler.db = db;
       console.log("Deleted database");
+    } else if (event.key === "e") {
+      console.log("experimenting");
     }
   }
 }
