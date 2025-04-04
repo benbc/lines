@@ -15,16 +15,13 @@ async function control() {
   while (true) {
     await scheduler.logStats();
 
-    const event = await keyPress("l", "r", "i", "d");
+    const event = await keyPress("l", "r", "d");
     if (event.key === "l") {
       await learn(scheduler, script);
       console.log("Done learning");
     } else if (event.key === "r") {
       await review(scheduler, script);
       console.log("Done reviewing");
-    } else if (event.key === "i") {
-      await ingest(scheduler, script);
-      console.log("Done ingesting");
     } else if (event.key === "d") {
       await deleteDB(db);
       db = await openDB();
@@ -160,14 +157,6 @@ async function openDB() {
 async function deleteDB(db) {
   await db.close();
   await idb.deleteDB(db.name);
-}
-
-async function ingest(scheduler, script) {
-  for (let i = 0; i < 20; i++) {
-    const line = await scheduler.findFirstUnlearnt();
-    if (!line) return;
-    await checkLine(line, scheduler, script);
-  }
 }
 
 async function review(scheduler, script) {
