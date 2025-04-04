@@ -190,7 +190,8 @@ async function reviewLine(earliest, script, scheduler) {
   }
 
   for (let line of lines) {
-    await checkLine(line, scheduler, script);
+    const rating = await checkLine(line, scheduler, script);
+    await scheduler.recordResult(line, rating);
   }
 }
 
@@ -203,19 +204,20 @@ async function learn(scheduler, script) {
 async function learnLine(line, scheduler, script) {
   for (const fragment of chunk(line, script)) {
     for (const line of fragment) {
+      await checkLine(line, scheduler, script);
       // We always rate newly-learnt lines as Hard because our learning algorithm shows
       // them to us repeatedly. If we record all those quick views as Good or Easy,
       // FSRS will think the line is very easy and won't show it to us again for ages.
-      await checkLine(line, scheduler, script, Rating.Hard);
+      await scheduler.recordResult(line, Rating.Hard);
     }
   }
 }
 
-async function checkLine(line, scheduler, script, ratingOverride) {
+async function checkLine(line, scheduler, script) {
   script.highlight(line);
   const rating = await getRating(line, script);
-  await scheduler.recordResult(line, ratingOverride || rating);
   script.unhighlight(line);
+  return rating;
 }
 
 async function getRating(line, script) {
