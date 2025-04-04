@@ -276,7 +276,7 @@ function* chunk(line, script) {
     yield lines.slice(-i);
   }
 }
-chunk.size = 5;
+chunk.size = 4;
 
 async function keyPress(...expected) {
   return new Promise((resolve) => {
