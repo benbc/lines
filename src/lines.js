@@ -23,7 +23,7 @@ async function control() {
       await review(scheduler, script);
       console.log("Done reviewing");
     } else if (event.key === "d") {
-      await deleteDB(db);
+      // await deleteDB(db);
       db = await openDB();
       scheduler.db = db;
       console.log("Deleted database");
