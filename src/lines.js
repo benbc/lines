@@ -69,7 +69,7 @@ class Scheduler {
       "by-due",
       IDBKeyRange.lowerBound(new Date(0)),
     );
-    if (this.#isCardDue(earliest)) return earliest.id;
+    if (earliest) return earliest.id;
   }
 
   async findFirstUnlearnt() {
