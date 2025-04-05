@@ -87,6 +87,15 @@ class Scheduler {
     return [State.Learning, State.Relearning].includes(card.state);
   }
 
+  async anyNeedLearning(lines) {
+    for (let line of lines) {
+      if (await this.needsLearning(line)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   async recordLearning(line) {
     let card = await this.#getCard(line);
     if (!card) {
@@ -203,8 +212,10 @@ async function review(scheduler, script) {
   if (!earliest) return;
 
   if (await scheduler.needsLearning(earliest)) {
-    await learnLine(earliest, scheduler, script);
+    console.log("learning review");
+    await learnLineSubsequentTimes(earliest, scheduler, script);
   } else {
+    console.log("standard review");
     await reviewLine(earliest, script, scheduler);
   }
 }
@@ -232,13 +243,53 @@ async function reviewLine(earliest, script, scheduler) {
   }
 }
 
+async function learnLineSubsequentTimes(target, scheduler, script) {
+  let lines = [target];
+
+  while (true) {
+    const linesBefore = script.linesBefore(lines[0], 5);
+    if (linesBefore.length == 0) break;
+    lines = linesBefore.concat(lines);
+    if (!(await scheduler.anyNeedLearning(linesBefore))) break;
+  }
+
+  while (true) {
+    const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
+    if (linesAfter.length == 0) break;
+    if (!(await scheduler.anyNeedLearning(linesAfter))) break;
+    lines = lines.concat(linesAfter);
+  }
+
+  for (let slice of allSlices(lines, 5)) {
+    let line;
+    let rating;
+    for (line of slice) {
+      rating = await checkLine(line, scheduler, script);
+    }
+    // We only rate the last line of the slice, otherwise the short-term repetition
+    // makes the FSRS algorithm think the lines are easier than they really are.
+    await scheduler.recordReview(line, rating);
+  }
+}
+
+function* allSlices(arr, len) {
+  const numSlices = len - 1 + arr.length;
+  for (let i = 0; i < numSlices; i++) {
+    let start = i - (len - 1);
+    let clippedStart = Math.max(start, 0);
+    let end = start + (len - 1);
+    let clippedEnd = Math.min(arr.length - 1, end);
+    yield arr.slice(clippedStart, clippedEnd + 1);
+  }
+}
+
 async function learn(scheduler, script) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
-  await learnLine(line, scheduler, script);
+  await learnLineFirstTime(line, scheduler, script);
 }
 
-async function learnLine(line, scheduler, script) {
+async function learnLineFirstTime(line, scheduler, script) {
   for (const fragment of chunk(line, script)) {
     for (const line of fragment) {
       await checkLine(line, scheduler, script);
