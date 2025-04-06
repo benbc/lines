@@ -50,26 +50,26 @@ class Scheduler {
     }
   }
 
-  async isDue(line) {
-    return this.#isCardDue(await this.#getCard(line));
+  async isDueToday(line) {
+    return this.#isCardDueToday(await this.#getCard(line));
   }
 
-  async anyDue(lines) {
+  async anyDueToday(lines) {
     for (let line of lines) {
-      if (await this.isDue(line)) {
+      if (await this.isDueToday(line)) {
         return true;
       }
     }
     return false;
   }
 
-  async findEarliestDue() {
+  async findEarliestDueToday() {
     const earliest = await this.db.getFromIndex(
       "lines",
       "by-due",
       IDBKeyRange.lowerBound(new Date(0)),
     );
-    if (earliest) return earliest.id;
+    if (this.#isCardDueToday(earliest)) return earliest.id;
   }
 
   async findFirstUnlearnt() {
@@ -138,7 +138,7 @@ class Scheduler {
     const lines = await this.db.getAll("lines");
 
     console.log(
-      `${lines.length} lines (of which ${lines.filter(this.#isCardDue).length} due)`,
+      `${lines.length} lines (of which ${lines.filter(this.#isCardDueToday).length} due today)`,
     );
 
     const states = objMap(
@@ -181,8 +181,8 @@ class Scheduler {
     await this.db.put("lines", card);
   }
 
-  #isCardDue(card) {
-    return card && card.due < new Date();
+  #isCardDueToday(card) {
+    return card && (card.due < new Date() || isToday(card.due));
   }
 
   async #getLearntLines() {
@@ -208,7 +208,7 @@ async function deleteDB(db) {
 }
 
 async function review(scheduler, script) {
-  const earliest = await scheduler.findEarliestDue();
+  const earliest = await scheduler.findEarliestDueToday();
   if (!earliest) return;
 
   if (await scheduler.needsLearning(earliest)) {
@@ -227,15 +227,23 @@ async function reviewLine(earliest, script, scheduler) {
     const linesBefore = script.linesBefore(lines[0], 5);
     if (linesBefore.length == 0) break;
     lines = linesBefore.concat(lines);
-    if (!(await scheduler.anyDue(linesBefore))) break;
+    if (!(await scheduler.anyDueToday(linesBefore))) break;
   }
 
   while (true) {
     const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
     if (linesAfter.length == 0) break;
-    if (!(await scheduler.anyDue(linesAfter))) break;
+    if (!(await scheduler.anyDueToday(linesAfter))) break;
     lines = lines.concat(linesAfter);
   }
+
+  const due = [];
+  for (let line of lines) {
+    if (await scheduler.isDueToday(line)) {
+      due.push(line);
+    }
+  }
+  console.log(`Reviewing ${lines.length} lines (${due.length} due)`);
 
   for (let line of lines) {
     const rating = await checkLine(line, scheduler, script);
@@ -424,4 +432,10 @@ function objSort(obj) {
 
 function average(nums) {
   return nums.reduce((acc, val) => acc + val, 0) / nums.length;
+}
+
+function isToday(date) {
+  return (
+    new Date().toISOString().slice(0, 10) == date.toISOString().slice(0, 10)
+  );
 }
