@@ -268,15 +268,21 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
     lines = lines.concat(linesAfter);
   }
 
+  const ratings = new Map();
   for (let slice of allSlices(lines, 5)) {
     let line;
     let rating;
     for (line of slice) {
       rating = await checkLine(line, scheduler, script);
+      ratings.set(line, rating);
     }
-    // We only rate the last line of the slice, otherwise the short-term repetition
-    // makes the FSRS algorithm think the lines are easier than they really are.
     await scheduler.recordReview(line, rating);
+  }
+
+  // We only rate each line once, otherwise the short-term repetition makes
+  // the FSRS algorithm think the lines are easier than they really are.
+  for (let line of lines) {
+    await scheduler.recordReview(line, ratings.get(line));
   }
 }
 
