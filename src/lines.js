@@ -249,10 +249,14 @@ async function reviewLine(earliest, script, scheduler) {
   }
   console.log(`Reviewing ${lines.length} lines (${due.length} due)`);
 
+  script.showWordInitials(lines);
+
   for (let line of lines) {
     const rating = await checkLine(line, scheduler, script);
     await scheduler.recordReview(line, rating);
   }
+
+  script.showNone(lines);
 }
 
 async function learnLineSubsequentTimes(target, scheduler, script) {
@@ -280,6 +284,8 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
     lines = lines.concat(linesAfter);
   }
 
+  script.showWordInitials(lines);
+
   const ratings = new Map();
   for (let slice of allSlices(lines, 5)) {
     let line;
@@ -289,6 +295,8 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
       ratings.set(line, rating);
     }
   }
+
+  script.showNone(lines);
 
   // We only rate each line once, otherwise the short-term repetition makes
   // the FSRS algorithm think the lines are easier than they really are.
@@ -317,11 +325,15 @@ async function learn(scheduler, script) {
 async function learnLineFirstTime(target, scheduler, script) {
   const lines = script.linesBefore(target, 4).concat(target);
 
+  script.showWordInitials(lines);
+
   for (let i = 1; i <= lines.length; i++) {
     for (let line of lines.slice(-i)) {
       await checkLine(line, scheduler, script);
     }
   }
+
+  script.showNone(lines);
 
   await scheduler.recordLearning(target);
 }
@@ -342,9 +354,9 @@ async function getRating(line, script) {
   };
   var key = (await keyPress(...Object.keys(keyMap), " ")).key;
   if (key === " ") {
-    script.show(line);
+    script.showAll(line);
     key = (await keyPress(...Object.keys(keyMap))).key;
-    script.hide(line);
+    script.showWordInitials(line);
   }
   return keyMap[key];
 }
@@ -411,14 +423,34 @@ class Script {
     elem.classList.remove("current-line");
   }
 
-  show(line) {
-    const elem = document.getElementById(line);
-    elem.classList.add("show-all");
+  showNone(...lines) {
+    this.#setVisibility(lines);
   }
 
-  hide(line) {
-    const elem = document.getElementById(line);
-    elem.classList.remove("show-all");
+  showLineInitials(...lines) {
+    this.#setVisibility(lines, "show-line-initials");
+  }
+
+  showWordInitials(...lines) {
+    this.#setVisibility(lines, "show-word-initials");
+  }
+
+  showAll(...lines) {
+    this.#setVisibility(lines, "show-all");
+  }
+
+  #setVisibility(lines, visibility) {
+    for (let line of lines.flat()) {
+      const elem = document.getElementById(line);
+      elem.classList.remove(
+        "show-line-initials",
+        "show-word-initials",
+        "show-all",
+      );
+      if (visibility) {
+        elem.classList.add(visibility);
+      }
+    }
   }
 }
 
