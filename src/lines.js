@@ -50,6 +50,10 @@ class Scheduler {
     }
   }
 
+  async hasRecordOf(line) {
+    return (await this.#getCard(line)) !== undefined;
+  }
+
   async isDueToday(line) {
     return this.#isCardDueToday(await this.#getCard(line));
   }
@@ -263,8 +267,16 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
 
   while (true) {
     const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
+
+    while (
+      linesAfter.length > 0 &&
+      !(await scheduler.hasRecordOf(linesAfter[linesAfter.length - 1]))
+    ) {
+      linesAfter.pop();
+    }
     if (linesAfter.length == 0) break;
     if (!(await scheduler.anyNeedLearning(linesAfter))) break;
+
     lines = lines.concat(linesAfter);
   }
 
