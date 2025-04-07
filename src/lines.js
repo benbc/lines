@@ -419,12 +419,12 @@ class Script {
 
   show(line) {
     const elem = document.getElementById(line);
-    elem.classList.add("display");
+    elem.classList.add("show-all");
   }
 
   hide(line) {
     const elem = document.getElementById(line);
-    elem.classList.remove("display");
+    elem.classList.remove("show-all");
   }
 }
 

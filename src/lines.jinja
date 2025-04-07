@@ -9,13 +9,14 @@
         {% set scene_loop = loop %}
         <h1>{{ scene }}</h1>
         {% for prefix, line in lines %}
-            <p id="{{ hash(line) }}">
+            <p id="{{ hash(line) }}" class="show-word-initials">
                 <span class="prefix">{{ prefix }}</span>
                 {% for element in line -%}
-                    {{ element[0] }}
-                    {%- if element|length > 1 -%}
-                        <span class="detail">{{ element[1:] }}</span>
-                    {%- endif %}
+                    <span class="element {{ 'first' if loop.first }}">
+                        {%- for char in element -%}
+                            <span class="{{ 'initial' if loop.first }}">{{ char }}</span>
+                        {%- endfor -%}
+                    </span>
                 {%- endfor %}
             </p>
         {% endfor %}

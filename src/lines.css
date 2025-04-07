@@ -19,6 +19,18 @@ p {
     background-color: linen;
 }
 
-:not(.display) > .detail {
+.element {
     visibility: hidden;
+}
+
+.show-line-initials .element.first .initial {
+    visibility: visible;
+}
+
+.show-word-initials .element .initial {
+    visibility: visible;
+}
+
+.show-all .element {
+    visibility: visible;
 }
