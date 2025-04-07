@@ -288,7 +288,6 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
       rating = await checkLine(line, scheduler, script);
       ratings.set(line, rating);
     }
-    await scheduler.recordReview(line, rating);
   }
 
   // We only rate each line once, otherwise the short-term repetition makes
