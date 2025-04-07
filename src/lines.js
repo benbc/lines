@@ -314,13 +314,16 @@ async function learn(scheduler, script) {
   await learnLineFirstTime(line, scheduler, script);
 }
 
-async function learnLineFirstTime(line, scheduler, script) {
-  for (const fragment of chunk(line, script)) {
-    for (const line of fragment) {
+async function learnLineFirstTime(target, scheduler, script) {
+  const lines = script.linesBefore(target, 4).concat(target);
+
+  for (let i = 1; i <= lines.length; i++) {
+    for (let line of lines.slice(-i)) {
       await checkLine(line, scheduler, script);
     }
   }
-  await scheduler.recordLearning(line);
+
+  await scheduler.recordLearning(target);
 }
 
 async function checkLine(line, scheduler, script) {
@@ -345,14 +348,6 @@ async function getRating(line, script) {
   }
   return keyMap[key];
 }
-
-function* chunk(line, script) {
-  const lines = script.linesBefore(line, chunk.size).concat(line);
-  for (let i = 1; i <= lines.length; i++) {
-    yield lines.slice(-i);
-  }
-}
-chunk.size = 4;
 
 async function keyPress(...expected) {
   return new Promise((resolve) => {
