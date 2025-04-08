@@ -58,26 +58,23 @@ class Scheduler {
     return (await this.#getCard(line)).difficulty;
   }
 
-  async isDueToday(line) {
-    return this.#isCardDueToday(await this.#getCard(line));
-  }
-
-  async anyDueToday(lines) {
-    for (let line of lines) {
-      if (await this.isDueToday(line)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  async findEarliestDueToday() {
+  async findFirstReview() {
     const earliest = await this.db.getFromIndex(
       "lines",
       "by-due",
       IDBKeyRange.lowerBound(new Date(0)),
     );
-    if (this.#isCardDueToday(earliest)) return earliest.id;
+    if (earliest) return earliest.id;
+  }
+
+  async anyReviewable(lines) {
+    const all = await this.db.getAllKeysFromIndex(
+      "lines",
+      "by-due",
+      IDBKeyRange.lowerBound(new Date(0)),
+    );
+    const reviewable = all.slice(0, 50);
+    return lines.some((l) => reviewable.includes(l));
   }
 
   async findFirstUnlearnt() {
@@ -145,9 +142,7 @@ class Scheduler {
   async logStats() {
     const lines = await this.db.getAll("lines");
 
-    console.log(
-      `${lines.length} lines (of which ${lines.filter(this.#isCardDueToday).length} due today)`,
-    );
+    console.log(`${lines.length} lines`);
 
     const states = objMap(
       partition(lines, (l) => State[l.state]),
@@ -189,10 +184,6 @@ class Scheduler {
     await this.db.put("lines", card);
   }
 
-  #isCardDueToday(card) {
-    return card && (card.due < new Date() || isToday(card.due));
-  }
-
   async #getLearntLines() {
     return await this.db.getAllKeys("lines");
   }
@@ -216,7 +207,7 @@ async function deleteDB(db) {
 }
 
 async function review(scheduler, script) {
-  const earliest = await scheduler.findEarliestDueToday();
+  const earliest = await scheduler.findFirstReview();
   if (!earliest) return;
 
   if (await scheduler.needsLearning(earliest)) {
@@ -235,23 +226,15 @@ async function reviewLine(earliest, script, scheduler) {
     const linesBefore = script.linesBefore(lines[0], 5);
     if (linesBefore.length == 0) break;
     lines = linesBefore.concat(lines);
-    if (!(await scheduler.anyDueToday(linesBefore))) break;
+    if (!(await scheduler.anyReviewable(linesBefore))) break;
   }
 
   while (true) {
     const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
     if (linesAfter.length == 0) break;
-    if (!(await scheduler.anyDueToday(linesAfter))) break;
+    if (!(await scheduler.anyReviewable(linesAfter))) break;
     lines = lines.concat(linesAfter);
   }
-
-  const due = [];
-  for (let line of lines) {
-    if (await scheduler.isDueToday(line)) {
-      due.push(line);
-    }
-  }
-  console.log(`Reviewing ${lines.length} lines (${due.length} due)`);
 
   script.showWordInitials(lines.slice(0, 2));
   const linesToTest = lines.slice(2);
@@ -494,10 +477,4 @@ function objSort(obj) {
 
 function average(nums) {
   return nums.reduce((acc, val) => acc + val, 0) / nums.length;
-}
-
-function isToday(date) {
-  return (
-    new Date().toISOString().slice(0, 10) == date.toISOString().slice(0, 10)
-  );
 }
