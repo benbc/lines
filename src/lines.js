@@ -54,6 +54,10 @@ class Scheduler {
     return (await this.#getCard(line)) !== undefined;
   }
 
+  async getDifficulty(line) {
+    return (await this.#getCard(line)).difficulty;
+  }
+
   async isDueToday(line) {
     return this.#isCardDueToday(await this.#getCard(line));
   }
@@ -249,11 +253,25 @@ async function reviewLine(earliest, script, scheduler) {
   }
   console.log(`Reviewing ${lines.length} lines (${due.length} due)`);
 
-  script.showWordInitials(lines);
+  script.showWordInitials(lines.slice(0, 2));
+  const linesToTest = lines.slice(2);
+  for (let line of linesToTest) {
+    switch (scheduler.getDifficulty(line)) {
+      case 1:
+        script.showNone(line);
+        break;
+      case 2:
+        script.showWordInitials(line);
+        break;
+      default:
+        script.showLineInitials(line);
+    }
+  }
 
-  for (let line of lines) {
+  for (let line of linesToTest) {
     const rating = await checkLine(line, scheduler, script);
     await scheduler.recordReview(line, rating);
+    script.showWordInitials(line);
   }
 
   script.showNone(lines);
