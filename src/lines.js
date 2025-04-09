@@ -183,7 +183,15 @@ async function reviewLine(target, script, scheduler) {
     const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
     if (linesAfter.length == 0) break;
     if (!(await scheduler.anyReviewable(linesAfter))) break;
-    lines = lines.concat(linesAfter);
+    let hitUnlearnt = false;
+    for (const line of linesAfter) {
+      if (!(await scheduler.hasRecordOf(line))) {
+        hitUnlearnt = true;
+        break;
+      }
+      lines.push(line);
+    }
+    if (hitUnlearnt) break;
   }
 
   script.showWordInitials(lines.slice(0, 2));
