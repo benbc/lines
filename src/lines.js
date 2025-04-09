@@ -87,20 +87,6 @@ class Scheduler {
     console.log("Nothing to learn");
   }
 
-  async needsLearning(line) {
-    const card = await this.#getCard(line);
-    return [State.Learning, State.Relearning].includes(card.state);
-  }
-
-  async anyNeedLearning(lines) {
-    for (let line of lines) {
-      if (await this.needsLearning(line)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   async recordLearning(line) {
     let card = await this.#getCard(line);
     if (!card) {
@@ -207,20 +193,13 @@ async function deleteDB(db) {
 }
 
 async function review(scheduler, script) {
-  const earliest = await scheduler.findFirstReview();
-  if (!earliest) return;
-
-  if (await scheduler.needsLearning(earliest)) {
-    console.log("learning review");
-    await learnLineSubsequentTimes(earliest, scheduler, script);
-  } else {
-    console.log("standard review");
-    await reviewLine(earliest, script, scheduler);
-  }
+  const line = await scheduler.findFirstReview();
+  if (!line) return;
+  await reviewLine(line, script, scheduler);
 }
 
-async function reviewLine(earliest, script, scheduler) {
-  let lines = [earliest];
+async function reviewLine(target, script, scheduler) {
+  let lines = [target];
 
   while (true) {
     const linesBefore = script.linesBefore(lines[0], 5);
@@ -260,53 +239,6 @@ async function reviewLine(earliest, script, scheduler) {
   script.showNone(lines);
 }
 
-async function learnLineSubsequentTimes(target, scheduler, script) {
-  let lines = [target];
-
-  while (true) {
-    const linesBefore = script.linesBefore(lines[0], 5);
-    if (linesBefore.length == 0) break;
-    lines = linesBefore.concat(lines);
-    if (!(await scheduler.anyNeedLearning(linesBefore))) break;
-  }
-
-  while (true) {
-    const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
-
-    while (
-      linesAfter.length > 0 &&
-      !(await scheduler.hasRecordOf(linesAfter[linesAfter.length - 1]))
-    ) {
-      linesAfter.pop();
-    }
-    if (linesAfter.length == 0) break;
-    if (!(await scheduler.anyNeedLearning(linesAfter))) break;
-
-    lines = lines.concat(linesAfter);
-  }
-
-  script.showWordInitials(lines);
-
-  const ratings = new Map();
-  for (let slice of allSlices(lines, 5)) {
-    let line;
-    let rating;
-    for (line of slice) {
-      rating = await checkLine(line, scheduler, script);
-      ratings.set(line, rating);
-      script.showWordInitials(line);
-    }
-  }
-
-  script.showNone(lines);
-
-  // We only rate each line once, otherwise the short-term repetition makes
-  // the FSRS algorithm think the lines are easier than they really are.
-  for (let line of lines) {
-    await scheduler.recordReview(line, ratings.get(line));
-  }
-}
-
 function* allSlices(arr, len) {
   const numSlices = len - 1 + arr.length;
   for (let i = 0; i < numSlices; i++) {
@@ -321,10 +253,10 @@ function* allSlices(arr, len) {
 async function learn(scheduler, script) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
-  await learnLineFirstTime(line, scheduler, script);
+  await learnLine(line, scheduler, script);
 }
 
-async function learnLineFirstTime(target, scheduler, script) {
+async function learnLine(target, scheduler, script) {
   const lines = script.linesBefore(target, 4).concat(target);
 
   script.showWordInitials(lines);
