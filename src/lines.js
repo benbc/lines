@@ -294,6 +294,7 @@ async function learnLineSubsequentTimes(target, scheduler, script) {
     for (line of slice) {
       rating = await checkLine(line, scheduler, script);
       ratings.set(line, rating);
+      script.showWordInitials(line);
     }
   }
 
@@ -353,12 +354,14 @@ async function getRating(line, script) {
     2: Rating.Good,
     3: Rating.Easy,
   };
-  var key = (await keyPress(...Object.keys(keyMap), " ")).key;
-  if (key === " ") {
-    script.showAll(line);
-    key = (await keyPress(...Object.keys(keyMap))).key;
-    script.showWordInitials(line);
+  const keys = [...Object.keys(keyMap), " "];
+
+  let key;
+  while ((key = (await keyPress(...keys)).key) === " ") {
+    script.increaseVisibility(line);
   }
+  console.assert(Object.hasOwn(keyMap, key));
+
   return keyMap[key];
 }
 
@@ -424,8 +427,26 @@ class Script {
     elem.classList.remove("current-line");
   }
 
+  increaseVisibility(line) {
+    const elem = document.getElementById(line);
+
+    // Find the singular current visibility class
+    const visClasses = Array.from(elem.classList).filter((c) =>
+      Script.visibilityClasses.includes(c),
+    );
+    console.assert(visClasses.length == 1);
+    const oldVis = visClasses[0];
+
+    // Calculate the increased visibility
+    const index = Script.visibilityClasses.indexOf(oldVis);
+    if (index === Script.visibilityClasses.length - 1) return;
+    const newVis = Script.visibilityClasses[index + 1];
+
+    this.#setVisibility([line], newVis);
+  }
+
   showNone(...lines) {
-    this.#setVisibility(lines);
+    this.#setVisibility(lines, "show-none");
   }
 
   showLineInitials(...lines) {
@@ -443,17 +464,17 @@ class Script {
   #setVisibility(lines, visibility) {
     for (let line of lines.flat()) {
       const elem = document.getElementById(line);
-      elem.classList.remove(
-        "show-line-initials",
-        "show-word-initials",
-        "show-all",
-      );
-      if (visibility) {
-        elem.classList.add(visibility);
-      }
+      elem.classList.remove(...Script.visibilityClasses);
+      elem.classList.add(visibility);
     }
   }
 }
+Script.visibilityClasses = [
+  "show-none",
+  "show-line-initials",
+  "show-word-initials",
+  "show-all",
+];
 
 function partition(arr, fun) {
   const result = {};

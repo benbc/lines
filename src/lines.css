@@ -23,6 +23,10 @@ p {
     visibility: hidden;
 }
 
+/* Included for completeness, so all lines have exactly one show- class */
+.show-none {
+}
+
 .show-line-initials .element.first .initial {
     visibility: visible;
 }
