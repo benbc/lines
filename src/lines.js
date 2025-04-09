@@ -87,41 +87,12 @@ class Scheduler {
     console.log("Nothing to learn");
   }
 
-  async recordLearning(line) {
+  async recordReview(line, result) {
     let card = await this.#getCard(line);
     if (!card) {
       card = tsfsrs.createEmptyCard();
       card.id = line;
     }
-    console.log(card);
-
-    let learnCount;
-    if ([State.New, State.Learning].includes(card.state)) {
-      learnCount = card.reps;
-    } else if (card.state == State.Relearning) {
-      // We add our own state to record how long we've been relearning for
-      if (!card.relearnReps) {
-        card.relearnReps = 0;
-      }
-      learnCount = card.relearnReps;
-      card.relearnReps += 1;
-    } else {
-      console.assert(false);
-    }
-    // This is a bit of a hack to get FSRS to give us a couple of reviews
-    // on the same day, then another review the next day, then put the line
-    // into the standard review flow.
-    const ratings = [Rating.Again, Rating.Hard, Rating.Hard, Rating.Good];
-    if (learnCount >= ratings.length) {
-      learnCount = ratings.length - 1;
-    }
-
-    await this.#updateCard(card, ratings[learnCount]);
-  }
-
-  async recordReview(line, result) {
-    let card = await this.#getCard(line);
-    console.assert(card);
     this.#updateCard(card, result);
   }
 
@@ -239,17 +210,6 @@ async function reviewLine(target, script, scheduler) {
   script.showNone(lines);
 }
 
-function* allSlices(arr, len) {
-  const numSlices = len - 1 + arr.length;
-  for (let i = 0; i < numSlices; i++) {
-    let start = i - (len - 1);
-    let clippedStart = Math.max(start, 0);
-    let end = start + (len - 1);
-    let clippedEnd = Math.min(arr.length - 1, end);
-    yield arr.slice(clippedStart, clippedEnd + 1);
-  }
-}
-
 async function learn(scheduler, script) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
@@ -257,19 +217,33 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(target, scheduler, script) {
-  const lines = script.linesBefore(target, 4).concat(target);
+  const before = script.linesBefore(target, 2);
+  const after = [];
+  for (const line of script.linesAfter(target, 9)) {
+    if (await scheduler.hasRecordOf(line)) break;
+    after.push(line);
+  }
 
-  script.showWordInitials(lines);
+  const toLearn = [target].concat(after);
+  const all = before.concat(toLearn);
 
-  for (let i = 1; i <= lines.length; i++) {
-    for (let line of lines.slice(-i)) {
+  script.showWordInitials(all);
+
+  for (const slice of allSlices(toLearn, 5)) {
+    for (const line of slice) {
       await checkLine(line, scheduler, script);
+      script.showWordInitials(line);
     }
   }
 
-  script.showNone(lines);
+  // Only record each line onece. Otherwise all the repetition and the ease with
+  // which these lines are recalled in the short term causes FSRS to think that
+  // all newly learnt lines are easy.
+  for (const line of toLearn) {
+    await scheduler.recordReview(line, Rating.Hard);
+  }
 
-  await scheduler.recordLearning(target);
+  script.showNone(all);
 }
 
 async function checkLine(line, scheduler, script) {
@@ -430,4 +404,15 @@ function objSort(obj) {
 
 function average(nums) {
   return nums.reduce((acc, val) => acc + val, 0) / nums.length;
+}
+
+function* allSlices(arr, len) {
+  const numSlices = len - 1 + arr.length;
+  for (let i = 0; i < numSlices; i++) {
+    let start = i - (len - 1);
+    let clippedStart = Math.max(start, 0);
+    let end = start + (len - 1);
+    let clippedEnd = Math.min(arr.length - 1, end);
+    yield arr.slice(clippedStart, clippedEnd + 1);
+  }
 }
