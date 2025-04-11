@@ -55,7 +55,7 @@ class Scheduler {
   }
 
   async getDifficulty(line) {
-    return (await this.#getCard(line)).difficulty;
+    return Math.trunc((await this.#getCard(line)).difficulty);
   }
 
   async findFirstReview() {
