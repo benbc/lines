@@ -213,7 +213,7 @@ async function reviewLine(target, script, scheduler) {
   script.showWordInitials(prefix);
 
   for (let line of lines) {
-    switch (scheduler.getDifficulty(line)) {
+    switch (await scheduler.getDifficulty(line)) {
       case 1:
         script.showNone(line);
         break;
