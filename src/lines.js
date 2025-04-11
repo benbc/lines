@@ -202,10 +202,10 @@ async function reviewLine(target, script, scheduler) {
         script.showNone(line);
         break;
       case 2:
-        script.showWordInitials(line);
+        script.showLineInitials(line);
         break;
       default:
-        script.showLineInitials(line);
+        script.showWordInitials(line);
     }
   }
 
