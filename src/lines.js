@@ -67,13 +67,12 @@ class Scheduler {
     if (earliest) return earliest.id;
   }
 
+  async isReviewable(line) {
+    return (await this.#getReviewable()).includes(line);
+  }
+
   async anyReviewable(lines) {
-    const all = await this.db.getAllKeysFromIndex(
-      "lines",
-      "by-due",
-      IDBKeyRange.lowerBound(new Date(0)),
-    );
-    const reviewable = all.slice(0, 50);
+    const reviewable = await this.#getReviewable();
     return lines.some((l) => reviewable.includes(l));
   }
 
@@ -144,6 +143,15 @@ class Scheduler {
   async #getLearntLines() {
     return await this.db.getAllKeys("lines");
   }
+
+  async #getReviewable() {
+    const all = await this.db.getAllKeysFromIndex(
+      "lines",
+      "by-due",
+      IDBKeyRange.lowerBound(new Date(0)),
+    );
+    return all.slice(0, 50);
+  }
 }
 
 async function openDB() {
@@ -172,31 +180,39 @@ async function review(scheduler, script) {
 async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
+  // Prepend lines until we see three consecutive unreviewable lines
+  let line = target;
   while (true) {
-    const linesBefore = script.linesBefore(lines[0], 5);
-    if (linesBefore.length == 0) break;
-    lines = linesBefore.concat(lines);
-    if (!(await scheduler.anyReviewable(linesBefore))) break;
+    line = script.lineBefore(line);
+    if (!line) break;
+    lines.unshift(line);
+    if (!(await scheduler.anyReviewable(lines.slice(0, 3)))) break;
   }
 
-  while (true) {
-    const linesAfter = script.linesAfter(lines[lines.length - 1], 5);
-    if (linesAfter.length == 0) break;
-    if (!(await scheduler.anyReviewable(linesAfter))) break;
-    let hitUnlearnt = false;
-    for (const line of linesAfter) {
-      if (!(await scheduler.hasRecordOf(line))) {
-        hitUnlearnt = true;
-        break;
-      }
-      lines.push(line);
-    }
-    if (hitUnlearnt) break;
+  // Detach the unreviewable prefix
+  const prefix = [];
+  while (!(await scheduler.isReviewable(lines[0]))) {
+    prefix.push(lines.shift());
   }
 
-  script.showWordInitials(lines.slice(0, 2));
-  const linesToTest = lines.slice(2);
-  for (let line of linesToTest) {
+  // Append lines until we see three consecutive unreviewable lines or an unlearnt one
+  line = target;
+  while (true) {
+    line = script.lineAfter(line);
+    if (!line) break;
+    if (!(await scheduler.hasRecordOf(line))) break;
+    lines.push(line);
+    if (!(await scheduler.anyReviewable(lines.slice(lines.length - 3)))) break;
+  }
+
+  // Discard the unreviewable suffix
+  while (!(await scheduler.isReviewable(lines[lines.length - 1]))) {
+    lines.pop();
+  }
+
+  script.showWordInitials(prefix);
+
+  for (let line of lines) {
     switch (scheduler.getDifficulty(line)) {
       case 1:
         script.showNone(line);
@@ -209,12 +225,13 @@ async function reviewLine(target, script, scheduler) {
     }
   }
 
-  for (let line of linesToTest) {
+  for (let line of lines) {
     const rating = await checkLine(line, scheduler, script);
     await scheduler.recordReview(line, rating);
     script.showWordInitials(line);
   }
 
+  script.showNone(prefix);
   script.showNone(lines);
 }
 
@@ -297,6 +314,12 @@ class Script {
     return lines.map((e) => e.id);
   }
 
+  lineBefore(line) {
+    const elem = document.getElementById(line);
+    const prev = elem.previousElementSibling;
+    if (prev && prev.tagName === "P") return prev.id;
+  }
+
   linesBefore(end, count) {
     const endLine = document.getElementById(end);
 
@@ -310,6 +333,12 @@ class Script {
     }
 
     return lines;
+  }
+
+  lineAfter(line) {
+    const elem = document.getElementById(line);
+    const next = elem.nextElementSibling;
+    if (next && next.tagName === "P") return next.id;
   }
 
   linesAfter(start, count) {
