@@ -242,7 +242,7 @@ async function learn(scheduler, script) {
 }
 
 async function learnLine(target, scheduler, script) {
-  const before = script.linesBefore(target, 2);
+  const before = script.linesBefore(target, 3);
   const after = [];
   for (const line of script.linesAfter(target, 9)) {
     if (await scheduler.hasRecordOf(line)) break;
