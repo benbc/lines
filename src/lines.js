@@ -276,11 +276,19 @@ async function ingestFromLine(target, scheduler, script) {
   for (let line of lines) {
     const rating = await checkLine(line, script);
     let ease, streak;
-    if ([Result.Okay, Result.Good].includes(rating)) {
-      ease = 2;
-      streak = 1;
-    } else {
-      ease = streak = 0;
+    switch (rating) {
+      case Result.Good:
+        ease = 3;
+        streak = 2;
+        break;
+      case Result.Okay:
+        ease = 2;
+        streak = 1;
+        break;
+      case Result.Fail:
+        break;
+      default:
+        console.error(`impossible rating ${rating}`);
     }
     await scheduler.addNew(line, {
       ease: ease,
