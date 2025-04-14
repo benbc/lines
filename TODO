@@ -2,7 +2,10 @@ Deploy on internet
 Mobile version
 Transfer state between clients
 
-Automatically determine rating based on use of hints
+Fuzz
+Full display of first line of prefix
+Relearn: after fail, quick loop with no recording
+Undo
 Add way of flagging lines failed in rehearsals etc
 Display summary information
 Indicate hard lines

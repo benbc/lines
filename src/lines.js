@@ -1,8 +1,23 @@
 import * as idb from "https://cdn.jsdelivr.net/npm/idb@8/+esm";
-import * as tsfsrs from "https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm";
 
-const Rating = tsfsrs.Rating;
-const State = tsfsrs.State;
+const Result = {
+  Good: 3,
+  Okay: 2,
+  Fail: 1,
+};
+const Display = {
+  WordInitials: 0,
+  LineInitials: 1,
+  None: 2,
+};
+
+function clampDisplay(display) {
+  return clamp(display, 0, 2);
+}
+
+function clampEase(ease) {
+  return clamp(ease, 0, 8);
+}
 
 window.addEventListener("load", (_) => control());
 
@@ -15,13 +30,13 @@ async function control() {
   while (true) {
     await scheduler.logStats();
 
-    const event = await keyPress("l", "r", "d", "e");
+    const event = await keyPress("l", "r", "i", "d", "e");
     if (event.key === "l") {
       await learn(scheduler, script);
-      console.log("Done learning");
     } else if (event.key === "r") {
       await review(scheduler, script);
-      console.log("Done reviewing");
+    } else if (event.key === "i") {
+      await ingest(scheduler, script);
     } else if (event.key === "d") {
       // await deleteDB(db);
       db = await openDB();
@@ -37,7 +52,6 @@ class Scheduler {
   constructor(db, allLines) {
     this.db = db;
     this.allLines = allLines;
-    this.fsrs = tsfsrs.fsrs();
   }
 
   async pruneOrphanedLines() {
@@ -54,17 +68,12 @@ class Scheduler {
     return (await this.#getCard(line)) !== undefined;
   }
 
-  async getDifficulty(line) {
-    return Math.trunc((await this.#getCard(line)).difficulty);
+  async getDisplay(line) {
+    return (await this.#getCard(line)).display;
   }
 
-  async findFirstReview() {
-    const earliest = await this.db.getFromIndex(
-      "lines",
-      "by-due",
-      IDBKeyRange.lowerBound(new Date(0)),
-    );
-    if (earliest) return earliest.id;
+  async findFirstReviewable() {
+    return (await this.#getReviewable())[0];
   }
 
   async isReviewable(line) {
@@ -83,16 +92,37 @@ class Scheduler {
         return line;
       }
     }
-    console.log("Nothing to learn");
+  }
+
+  async addNew(line, defaults) {
+    console.assert(!(await this.hasRecordOf(line)));
+    const card = Object.assign({ id: line }, defaults);
+    recordDates(card);
+    this.#putCard(card);
   }
 
   async recordReview(line, result) {
-    let card = await this.#getCard(line);
-    if (!card) {
-      card = tsfsrs.createEmptyCard();
-      card.id = line;
+    const oldCard = await this.#getCard(line);
+    console.assert(oldCard);
+    const newCard = { id: line };
+
+    switch (result) {
+      case Result.Good:
+        recordSuccess(oldCard, newCard, 2);
+        break;
+      case Result.Okay:
+        recordSuccess(oldCard, newCard, 1);
+        break;
+      case Result.Fail:
+        recordFailure(oldCard, newCard);
+        break;
+      default:
+        console.error(`impossible result ${result}`);
     }
-    this.#updateCard(card, result);
+
+    recordDates(newCard);
+
+    this.#putCard(newCard);
   }
 
   async logStats() {
@@ -100,36 +130,35 @@ class Scheduler {
 
     console.log(`${lines.length} lines`);
 
-    const states = objMap(
-      partition(lines, (l) => State[l.state]),
-      (ls) => ls.length,
-    );
-    console.log("States:");
-    console.log(states);
-
-    const difficulties = objMap(
-      partition(lines, (l) => Math.trunc(l.difficulty)),
-      (ls) => ls.length,
-    );
-    console.log("Difficulties:");
-    console.log(difficulties);
-    console.log(
-      `Average ${average(lines.map((l) => l.difficulty)).toPrecision(2)}`,
-    );
-
-    const dueDates = objSort(
+    const due = objSort(
       objMap(
-        partition(lines, (l) => l.due.toISOString().slice(0, 10)),
+        partition(lines, (l) => l.due),
         (ls) => ls.length,
       ),
     );
-    console.log("Due dates:");
-    console.log(dueDates);
-  }
+    console.log("Due:");
+    console.log(due);
 
-  async #updateCard(card, rating) {
-    const updated = this.fsrs.next(card, new Date(), rating).card;
-    await this.#putCard(updated);
+    const ease = objMap(
+      partition(lines, (l) => l.ease),
+      (ls) => ls.length,
+    );
+    console.log("Ease:");
+    console.log(ease);
+
+    const display = objMap(
+      partition(lines, (l) => l.display),
+      (ls) => ls.length,
+    );
+    console.log("Display:");
+    console.log(display);
+
+    const streak = objMap(
+      partition(lines, (l) => l.streak),
+      (ls) => ls.length,
+    );
+    console.log("Streak:");
+    console.log(streak);
   }
 
   async #getCard(line) {
@@ -145,13 +174,46 @@ class Scheduler {
   }
 
   async #getReviewable() {
-    const all = await this.db.getAllKeysFromIndex(
+    const all = await this.db.getAllFromIndex(
       "lines",
       "by-due",
-      IDBKeyRange.lowerBound(new Date(0)),
+      IDBKeyRange.upperBound(dateOnly(new Date())),
     );
-    return all.slice(0, 50);
+    all.sort((fst, snd) => fst.lastReview - snd.lastReview);
+    return all.map((l) => l.id);
   }
+}
+
+function recordSuccess(oldCard, newCard, easeDelta) {
+  if (isToday(oldCard.lastReview)) {
+    // Don't consider lines to be getting easier if we repeatedly review them
+    // on the same day
+    newCard.ease = oldCard.ease;
+    newCard.streak = oldCard.streak;
+    newCard.display = oldCard.display;
+    return;
+  }
+
+  newCard.ease = clampEase(oldCard.ease + easeDelta);
+  newCard.streak = oldCard.streak + 1;
+
+  if (newCard.streak === 3) {
+    newCard.display = clampDisplay(oldCard.display + 1);
+    newCard.streak = 0;
+  } else {
+    newCard.display = oldCard.display;
+  }
+}
+
+function recordFailure(oldCard, newCard) {
+  newCard.ease = clampEase(oldCard.ease - 3);
+  newCard.streak = 0;
+  newCard.display = Display.WordInitials;
+}
+
+function recordDates(card) {
+  card.due = dateOnly(addDays(card.ease, new Date()));
+  card.lastReview = new Date();
 }
 
 async function openDB() {
@@ -171,8 +233,60 @@ async function deleteDB(db) {
   await idb.deleteDB(db.name);
 }
 
+async function ingest(scheduler, script) {
+  const line = await scheduler.findFirstUnlearnt();
+  if (!line) return;
+  await ingestFromLine(line, scheduler, script);
+}
+
+async function ingestFromLine(target, scheduler, script) {
+  // Assemble a prefix of up to three known lines
+  const prefix = [];
+  let line = target;
+  while (true) {
+    line = script.lineBefore(line);
+    if (!line) break;
+    console.assert(await scheduler.hasRecordOf(line));
+    prefix.unshift(line);
+    if (prefix.length >= 3) break;
+  }
+
+  // Assemble up to 20 lines to ingest
+  const lines = [target];
+  while (true) {
+    line = script.lineAfter(lines[lines.length - 1]);
+    if (!line) break;
+    console.assert(!(await scheduler.hasRecordOf(line)));
+    lines.push(line);
+    if (lines.length >= 20) break;
+  }
+
+  script.showWordInitials(prefix);
+  script.showWordInitials(lines);
+
+  for (let line of lines) {
+    const rating = await checkLine(line, scheduler, script);
+    let ease, streak;
+    if ([Result.Okay, Result.Good].includes(rating)) {
+      ease = 2;
+      streak = 1;
+    } else {
+      ease = streak = 0;
+    }
+    await scheduler.addNew(line, {
+      ease: ease,
+      display: Display.WordInitials,
+      streak: streak,
+    });
+    script.showWordInitials(line);
+  }
+
+  script.showNone(prefix);
+  script.showNone(lines);
+}
+
 async function review(scheduler, script) {
-  const line = await scheduler.findFirstReview();
+  const line = await scheduler.findFirstReviewable();
   if (!line) return;
   await reviewLine(line, script, scheduler);
 }
@@ -213,15 +327,19 @@ async function reviewLine(target, script, scheduler) {
   script.showWordInitials(prefix);
 
   for (let line of lines) {
-    switch (await scheduler.getDifficulty(line)) {
-      case 1:
+    const display = await scheduler.getDisplay(line);
+    switch (display) {
+      case Display.None:
         script.showNone(line);
         break;
-      case 2:
+      case Display.LineInitials:
         script.showLineInitials(line);
         break;
-      default:
+      case Display.WordInitials:
         script.showWordInitials(line);
+        break;
+      default:
+        console.error(`Impossible display: '${display}'`);
     }
   }
 
@@ -238,10 +356,10 @@ async function reviewLine(target, script, scheduler) {
 async function learn(scheduler, script) {
   const line = await scheduler.findFirstUnlearnt();
   if (!line) return;
-  await learnLine(line, scheduler, script);
+  await learnFromLine(line, scheduler, script);
 }
 
-async function learnLine(target, scheduler, script) {
+async function learnFromLine(target, scheduler, script) {
   const before = script.linesBefore(target, 3);
   const after = [];
   for (const line of script.linesAfter(target, 9)) {
@@ -261,11 +379,12 @@ async function learnLine(target, scheduler, script) {
     }
   }
 
-  // Only record each line onece. Otherwise all the repetition and the ease with
-  // which these lines are recalled in the short term causes FSRS to think that
-  // all newly learnt lines are easy.
   for (const line of toLearn) {
-    await scheduler.recordReview(line, Rating.Hard);
+    await scheduler.addNew(line, {
+      ease: 0,
+      streak: 0,
+      display: Display.WordInitials,
+    });
   }
 
   script.showNone(all);
@@ -280,10 +399,9 @@ async function checkLine(line, scheduler, script) {
 
 async function getRating(line, script) {
   const keyMap = {
-    "`": Rating.Again,
-    1: Rating.Hard,
-    2: Rating.Good,
-    3: Rating.Easy,
+    1: Result.Fail,
+    2: Result.Okay,
+    3: Result.Good,
   };
   const keys = [...Object.keys(keyMap), " "];
 
@@ -439,10 +557,6 @@ function objSort(obj) {
   return Object.fromEntries(Object.entries(obj).sort());
 }
 
-function average(nums) {
-  return nums.reduce((acc, val) => acc + val, 0) / nums.length;
-}
-
 function* allSlices(arr, len) {
   const numSlices = len - 1 + arr.length;
   for (let i = 0; i < numSlices; i++) {
@@ -452,4 +566,22 @@ function* allSlices(arr, len) {
     let clippedEnd = Math.min(arr.length - 1, end);
     yield arr.slice(clippedStart, clippedEnd + 1);
   }
+}
+
+function addDays(days, date) {
+  const newDate = new Date(date);
+  newDate.setDate(date.getDate() + days);
+  return newDate;
+}
+
+function dateOnly(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function isToday(date) {
+  return dateOnly(date) === dateOnly(new Date());
+}
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(val, max));
 }
