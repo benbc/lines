@@ -241,6 +241,7 @@ async function ingest(scheduler, script) {
 
 async function ingestFromLine(target, scheduler, script) {
   // Assemble a prefix of up to three known lines
+  const prefixLength = 3;
   const prefix = [];
   let line = target;
   while (true) {
@@ -248,7 +249,7 @@ async function ingestFromLine(target, scheduler, script) {
     if (!line) break;
     console.assert(await scheduler.hasRecordOf(line));
     prefix.unshift(line);
-    if (prefix.length >= 3) break;
+    if (prefix.length === prefixLength) break;
   }
 
   // Assemble up to 20 lines to ingest
@@ -262,6 +263,9 @@ async function ingestFromLine(target, scheduler, script) {
   }
 
   script.showWordInitials(prefix);
+  if (prefix.length === prefixLength) {
+    script.showAll(prefix[0]);
+  }
   script.showWordInitials(lines);
 
   for (let line of lines) {
@@ -295,12 +299,13 @@ async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
   // Prepend lines until we see three consecutive unreviewable lines
+  const prefixLength = 3;
   let line = target;
   while (true) {
     line = script.lineBefore(line);
     if (!line) break;
     lines.unshift(line);
-    if (!(await scheduler.anyReviewable(lines.slice(0, 3)))) break;
+    if (!(await scheduler.anyReviewable(lines.slice(0, prefixLength)))) break;
   }
 
   // Detach the unreviewable prefix
@@ -325,6 +330,9 @@ async function reviewLine(target, script, scheduler) {
   }
 
   script.showWordInitials(prefix);
+  if (prefix.length === prefixLength) {
+    script.showAll(prefix[0]);
+  }
 
   for (let line of lines) {
     const display = await scheduler.getDisplay(line);
@@ -360,7 +368,8 @@ async function learn(scheduler, script) {
 }
 
 async function learnFromLine(target, scheduler, script) {
-  const before = script.linesBefore(target, 3);
+  const prefixLength = 3;
+  const before = script.linesBefore(target, prefixLength);
   const after = [];
   for (const line of script.linesAfter(target, 9)) {
     if (await scheduler.hasRecordOf(line)) break;
@@ -371,6 +380,9 @@ async function learnFromLine(target, scheduler, script) {
   const all = before.concat(toLearn);
 
   script.showWordInitials(all);
+  if (before.length === prefixLength) {
+    script.showAll(all[0]);
+  }
 
   for (const slice of allSlices(toLearn, 5)) {
     for (const line of slice) {
