@@ -212,8 +212,13 @@ function recordFailure(oldCard, newCard) {
 }
 
 function recordDates(card) {
-  card.due = dateOnly(addDays(card.ease, new Date()));
+  card.due = dateOnly(addDays(fuzzEase(card.ease), new Date()));
   card.lastReview = new Date();
+}
+
+function fuzzEase(ease) {
+  const fuzzedEase = Math.round(normalRandom(ease, ease / 4));
+  return clamp(fuzzedEase, 0, 14);
 }
 
 async function openDB() {
@@ -596,4 +601,12 @@ function isToday(date) {
 
 function clamp(val, min, max) {
   return Math.max(min, Math.min(val, max));
+}
+
+function normalRandom(mean, stdDev) {
+  // Box-Muller transform for normal distribution
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  return z0 * stdDev + mean;
 }
