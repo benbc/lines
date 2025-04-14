@@ -274,7 +274,7 @@ async function ingestFromLine(target, scheduler, script) {
   script.showWordInitials(lines);
 
   for (let line of lines) {
-    const rating = await checkLine(line, scheduler, script);
+    const rating = await checkLine(line, script);
     let ease, streak;
     if ([Result.Okay, Result.Good].includes(rating)) {
       ease = 2;
@@ -358,7 +358,7 @@ async function reviewLine(target, script, scheduler) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const rating = await checkLine(line, scheduler, script);
+    const rating = await checkLine(line, script);
     script.showWordInitials(line);
 
     if (rating === Result.Fail) {
@@ -376,7 +376,7 @@ async function reviewLine(target, script, scheduler) {
 async function relearn(lines, script) {
   for (let i = lines.length - 1; i >= 0; i--) {
     for (const line of lines.slice(i, lines.length)) {
-      await checkLine(line, null, script);
+      await checkLine(line, script);
       script.showWordInitials(line);
     }
   }
@@ -407,7 +407,7 @@ async function learnFromLine(target, scheduler, script) {
 
   for (const slice of allSlices(toLearn, 5)) {
     for (const line of slice) {
-      await checkLine(line, scheduler, script);
+      await checkLine(line, script);
       script.showWordInitials(line);
     }
   }
@@ -423,7 +423,7 @@ async function learnFromLine(target, scheduler, script) {
   script.showNone(all);
 }
 
-async function checkLine(line, scheduler, script) {
+async function checkLine(line, script) {
   script.highlight(line);
   const rating = await getRating(line, script);
   script.unhighlight(line);
