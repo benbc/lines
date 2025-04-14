@@ -356,14 +356,30 @@ async function reviewLine(target, script, scheduler) {
     }
   }
 
-  for (let line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const rating = await checkLine(line, scheduler, script);
-    await scheduler.recordReview(line, rating);
     script.showWordInitials(line);
+
+    if (rating === Result.Fail) {
+      const practice = lines.slice(Math.max(0, i - 4), i + 1);
+      await relearn(practice, script);
+    }
+
+    await scheduler.recordReview(line, rating);
   }
 
   script.showNone(prefix);
   script.showNone(lines);
+}
+
+async function relearn(lines, script) {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    for (const line of lines.slice(i, lines.length)) {
+      await checkLine(line, null, script);
+      script.showWordInitials(line);
+    }
+  }
 }
 
 async function learn(scheduler, script) {
