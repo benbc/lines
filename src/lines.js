@@ -334,7 +334,10 @@ async function reviewLine(target, script, scheduler) {
     if (!line) break;
     if (!(await scheduler.hasRecordOf(line))) break;
     lines.push(line);
-    if (!(await scheduler.anyReviewable(lines.slice(lines.length - 3)))) break;
+    if (lines.length >= 3) {
+      if (!(await scheduler.anyReviewable(lines.slice(lines.length - 3))))
+        break;
+    }
   }
 
   // Discard the unreviewable suffix
