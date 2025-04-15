@@ -374,8 +374,7 @@ async function reviewLine(target, script, scheduler) {
     script.showWordInitials(line);
 
     if (rating === Result.Fail) {
-      const practice = lines.slice(Math.max(0, i - 4), i + 1);
-      await relearn(practice, script);
+      await relearn(line, script);
     }
 
     await scheduler.recordReview(line, rating);
@@ -385,7 +384,14 @@ async function reviewLine(target, script, scheduler) {
   script.showNone(lines);
 }
 
-async function relearn(lines, script) {
+async function relearn(target, script) {
+  const lines = [target];
+  while (lines.length < 5) {
+    const contextLine = script.lineBefore(lines[0]);
+    if (!contextLine) break;
+    lines.unshift(contextLine);
+  }
+
   for (let i = lines.length - 1; i >= 0; i--) {
     for (const line of lines.slice(i, lines.length)) {
       await checkLine(line, script);
