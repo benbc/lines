@@ -1,3 +1,5 @@
+Relearn should extend back up the script instead of taking a slice of lines because lines might not be long enough
+
 Deploy on internet
 Mobile version
 Transfer state between clients
