@@ -286,6 +286,7 @@ async function ingestFromLine(target, scheduler, script) {
         streak = 1;
         break;
       case Result.Fail:
+        ease = streak = 0;
         break;
       default:
         console.error(`impossible rating ${rating}`);
