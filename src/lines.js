@@ -185,7 +185,7 @@ class Scheduler {
 }
 
 function recordSuccess(oldCard, newCard, easeDelta) {
-  if (isToday(oldCard.lastReview)) {
+  if (isToday(oldCard.lastReview) && !isToday(oldCard.due)) {
     // Don't consider lines to be getting easier if we repeatedly review them
     // on the same day
     newCard.ease = oldCard.ease;
@@ -630,7 +630,10 @@ function dateOnly(date) {
 }
 
 function isToday(date) {
-  return dateOnly(date) === dateOnly(new Date());
+  if (typeof date !== "string") {
+    date = dateOnly(date);
+  }
+  return date === dateOnly(new Date());
 }
 
 function clamp(val, min, max) {
