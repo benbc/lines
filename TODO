@@ -1,3 +1,10 @@
+maybe: include tomorrow's reviews when extending
+maybe: non-determinstic display bumping so adjacent lines don't all drop out at once
+maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)
+maybe: drop ease when bumping display (sqrt?)
+maybe: replace ease/streak with a pre-determined succession
+maybe: more aggressive ease-drop on failure
+
 Deploy on internet
 Mobile version
 Transfer state between clients
@@ -6,3 +13,4 @@ Undo
 Add way of flagging lines failed in rehearsals etc
 Display summary information
 Indicate hard lines
+Remove ingestion
