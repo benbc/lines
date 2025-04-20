@@ -351,22 +351,7 @@ async function reviewLine(target, script, scheduler) {
     script.showAll(prefix[0]);
   }
 
-  for (let line of lines) {
-    const display = await scheduler.getDisplay(line);
-    switch (display) {
-      case Display.None:
-        script.showNone(line);
-        break;
-      case Display.LineInitials:
-        script.showLineInitials(line);
-        break;
-      case Display.WordInitials:
-        script.showWordInitials(line);
-        break;
-      default:
-        console.error(`Impossible display: '${display}'`);
-    }
-  }
+  await normaliseDisplay(lines, scheduler, script);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -374,7 +359,7 @@ async function reviewLine(target, script, scheduler) {
     script.showWordInitials(line);
 
     if (rating === Result.Fail) {
-      await relearn(line, script);
+      await relearn(line, scheduler, script);
     }
 
     await scheduler.recordReview(line, rating);
@@ -384,7 +369,7 @@ async function reviewLine(target, script, scheduler) {
   script.showNone(lines);
 }
 
-async function relearn(target, script) {
+async function relearn(target, scheduler, script) {
   const lines = [target];
   while (lines.length < 5) {
     const contextLine = script.lineBefore(lines[0]);
@@ -393,7 +378,9 @@ async function relearn(target, script) {
   }
 
   for (let i = lines.length - 1; i >= 0; i--) {
-    for (const line of lines.slice(i, lines.length)) {
+    const slice = lines.slice(i, lines.length);
+    await normaliseDisplay(slice, scheduler, script);
+    for (const line of slice) {
       await checkLine(line, script);
       script.showWordInitials(line);
     }
@@ -439,6 +426,25 @@ async function learnFromLine(target, scheduler, script) {
   }
 
   script.showNone(all);
+}
+
+async function normaliseDisplay(lines, scheduler, script) {
+  for (let line of lines) {
+    const display = await scheduler.getDisplay(line);
+    switch (display) {
+      case Display.None:
+        script.showNone(line);
+        break;
+      case Display.LineInitials:
+        script.showLineInitials(line);
+        break;
+      case Display.WordInitials:
+        script.showWordInitials(line);
+        break;
+      default:
+        console.error(`Impossible display: '${display}'`);
+    }
+  }
 }
 
 async function checkLine(line, script) {
