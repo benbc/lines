@@ -1,3 +1,5 @@
+use target display in learning loop
+
 maybe: include tomorrow's reviews when extending
 maybe: non-determinstic display bumping so adjacent lines don't all drop out at once
 maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)

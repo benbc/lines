@@ -208,7 +208,7 @@ function recordSuccess(oldCard, newCard, easeDelta) {
 function recordFailure(oldCard, newCard) {
   newCard.ease = clampEase(oldCard.ease - 3);
   newCard.streak = 0;
-  newCard.display = Display.WordInitials;
+  newCard.display = clampDisplay(oldCard.display - 1);
 }
 
 function recordDates(card) {
