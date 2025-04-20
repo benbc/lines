@@ -312,8 +312,8 @@ async function review(scheduler, script) {
 async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
-  // Prepend lines until we see three consecutive unreviewable lines
-  const prefixLength = 3;
+  // Prepend lines until we see four consecutive unreviewable lines
+  const prefixLength = 4;
   let line = target;
   while (true) {
     line = script.lineBefore(line);
@@ -328,15 +328,15 @@ async function reviewLine(target, script, scheduler) {
     prefix.push(lines.shift());
   }
 
-  // Append lines until we see three consecutive unreviewable lines or an unlearnt one
+  // Append lines until we see four consecutive unreviewable lines or an unlearnt one
   line = target;
   while (true) {
     line = script.lineAfter(line);
     if (!line) break;
     if (!(await scheduler.hasRecordOf(line))) break;
     lines.push(line);
-    if (lines.length >= 3) {
-      if (!(await scheduler.anyReviewable(lines.slice(lines.length - 3))))
+    if (lines.length >= 4) {
+      if (!(await scheduler.anyReviewable(lines.slice(lines.length - 4))))
         break;
     }
   }
