@@ -73,15 +73,19 @@ class Scheduler {
   }
 
   async findFirstReviewable() {
-    return (await this.#getReviewable())[0];
+    const due = await this.#getDueToday();
+    if (due.length === 0) return;
+    due.sort((fst, snd) => fst.lastReview - snd.lastReview);
+    return due[0].id;
   }
 
   async isReviewable(line) {
-    return (await this.#getReviewable()).includes(line);
+    const reviewable = await this.#getDueSoon();
+    return reviewable.includes(line);
   }
 
   async anyReviewable(lines) {
-    const reviewable = await this.#getReviewable();
+    const reviewable = await this.#getDueSoon();
     return lines.some((l) => reviewable.includes(l));
   }
 
@@ -173,14 +177,20 @@ class Scheduler {
     return await this.db.getAllKeys("lines");
   }
 
-  async #getReviewable() {
-    const all = await this.db.getAllFromIndex(
+  async #getDueToday() {
+    return await this.db.getAllFromIndex(
       "lines",
       "by-due",
-      IDBKeyRange.upperBound(dateOnly(new Date())),
+      IDBKeyRange.upperBound(today()),
     );
-    all.sort((fst, snd) => fst.lastReview - snd.lastReview);
-    return all.map((l) => l.id);
+  }
+
+  async #getDueSoon() {
+    return await this.db.getAllKeysFromIndex(
+      "lines",
+      "by-due",
+      IDBKeyRange.upperBound(tomorrow()),
+    );
   }
 }
 
@@ -212,8 +222,8 @@ function recordFailure(oldCard, newCard) {
 }
 
 function recordDates(card) {
-  card.due = dateOnly(addDays(fuzzEase(card.ease), new Date()));
-  card.lastReview = new Date();
+  card.due = daysFromToday(fuzzEase(card.ease));
+  card.lastReview = now();
 }
 
 function fuzzEase(ease) {
@@ -625,21 +635,37 @@ function* allSlices(arr, len) {
   }
 }
 
-function addDays(days, date) {
-  const newDate = new Date(date);
-  newDate.setDate(date.getDate() + days);
-  return newDate;
-}
-
-function dateOnly(date) {
-  return date.toISOString().slice(0, 10);
+function now() {
+  return new Date();
 }
 
 function isToday(date) {
   if (typeof date !== "string") {
     date = dateOnly(date);
   }
-  return date === dateOnly(new Date());
+  return date === today();
+}
+
+function today() {
+  return dateOnly(new Date());
+}
+
+function tomorrow() {
+  return dateOnly(addDays(1, new Date()));
+}
+
+function daysFromToday(days) {
+  return dateOnly(addDays(days, new Date()));
+}
+
+function dateOnly(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDays(days, date) {
+  const newDate = new Date(date);
+  newDate.setDate(date.getDate() + days);
+  return newDate;
 }
 
 function clamp(val, min, max) {
