@@ -207,8 +207,8 @@ function recordSuccess(oldCard, newCard, easeDelta) {
   newCard.ease = clampEase(oldCard.ease + easeDelta);
   newCard.streak = oldCard.streak + 1;
 
-  if (newCard.streak === 3) {
-    newCard.display = clampDisplay(oldCard.display + 1);
+  if (newCard.streak === 3 && oldCard.display < Display.None) {
+    newCard.display = oldCard.display + 1;
     newCard.streak = 0;
   } else {
     newCard.display = oldCard.display;
