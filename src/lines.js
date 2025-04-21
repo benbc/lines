@@ -204,13 +204,14 @@ function recordSuccess(oldCard, newCard, easeDelta) {
     return;
   }
 
-  newCard.ease = clampEase(oldCard.ease + easeDelta);
   newCard.streak = oldCard.streak + 1;
 
   if (newCard.streak === 3 && oldCard.display < Display.None) {
-    newCard.display = oldCard.display + 1;
+    newCard.ease = 0;
     newCard.streak = 0;
+    newCard.display = oldCard.display + 1;
   } else {
+    newCard.ease = clampEase(oldCard.ease + easeDelta);
     newCard.display = oldCard.display;
   }
 }
