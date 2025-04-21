@@ -195,24 +195,23 @@ class Scheduler {
 }
 
 function recordSuccess(oldCard, newCard, easeDelta) {
+  newCard.ease = oldCard.ease;
+  newCard.streak = oldCard.streak;
+  newCard.display = oldCard.display;
+
   if (isToday(oldCard.lastReview) && !isToday(oldCard.due)) {
     // Don't consider lines to be getting easier if we repeatedly review them
     // on the same day
-    newCard.ease = oldCard.ease;
-    newCard.streak = oldCard.streak;
-    newCard.display = oldCard.display;
     return;
   }
 
-  newCard.streak = oldCard.streak + 1;
+  newCard.ease = clampEase(newCard.ease + easeDelta);
+  newCard.streak++;
 
-  if (newCard.streak === 3 && oldCard.display < Display.None) {
+  if (newCard.streak === 3 && newCard.display < Display.None) {
     newCard.ease = 0;
     newCard.streak = 0;
-    newCard.display = oldCard.display + 1;
-  } else {
-    newCard.ease = clampEase(oldCard.ease + easeDelta);
-    newCard.display = oldCard.display;
+    newCard.display++;
   }
 }
 
