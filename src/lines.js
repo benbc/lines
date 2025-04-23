@@ -474,7 +474,7 @@ async function getRating(line, script) {
 
   let key;
   while ((key = (await keyPress(...keys)).key) === " ") {
-    script.increaseVisibility(line);
+    script.cycleVisibility(line);
   }
   console.assert(Object.hasOwn(keyMap, key));
 
@@ -555,7 +555,7 @@ class Script {
     elem.classList.remove("current-line");
   }
 
-  increaseVisibility(line) {
+  cycleVisibility(line) {
     const elem = document.getElementById(line);
 
     // Find the singular current visibility class
@@ -566,9 +566,14 @@ class Script {
     const oldVis = visClasses[0];
 
     // Calculate the increased visibility
-    const index = Script.visibilityClasses.indexOf(oldVis);
-    if (index === Script.visibilityClasses.length - 1) return;
-    const newVis = Script.visibilityClasses[index + 1];
+    const oldIndex = Script.visibilityClasses.indexOf(oldVis);
+    var newIndex;
+    if (oldIndex === Script.visibilityClasses.length - 1) {
+      newIndex = 0;
+    } else {
+      newIndex = oldIndex + 1;
+    }
+    const newVis = Script.visibilityClasses[newIndex];
 
     this.#setVisibility([line], newVis);
   }
