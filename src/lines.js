@@ -75,6 +75,7 @@ class Scheduler {
   async findFirstReviewable() {
     const due = await this.#getDueToday();
     if (due.length === 0) return;
+    console.log(`${due.length} due`);
     due.sort((fst, snd) => fst.lastReview - snd.lastReview);
     return due[0].id;
   }
