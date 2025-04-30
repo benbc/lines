@@ -75,7 +75,6 @@ class Scheduler {
   async findFirstReviewable() {
     const due = await this.#getDueToday();
     if (due.length === 0) return;
-    console.log(`${due.length} due`);
     due.sort((fst, snd) => fst.lastReview - snd.lastReview);
     return due[0].id;
   }
@@ -132,17 +131,18 @@ class Scheduler {
 
   async logStats() {
     const lines = await this.db.getAll("lines");
-
     console.log(`${lines.length} lines`);
+    const due = await this.#getDueToday();
+    console.log(`${due.length} due`);
 
-    const due = objSort(
+    const dueOn = objSort(
       objMap(
         partition(lines, (l) => l.due),
         (ls) => ls.length,
       ),
     );
-    console.log("Due:");
-    console.log(due);
+    console.log("Due on:");
+    console.log(dueOn);
 
     const ease = objMap(
       partition(lines, (l) => l.ease),
