@@ -363,6 +363,7 @@ async function reviewLine(target, script, scheduler) {
   }
 
   await normaliseDisplay(lines, scheduler, script);
+  script.lowlight(lines);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -376,6 +377,7 @@ async function reviewLine(target, script, scheduler) {
     await scheduler.recordReview(line, rating);
   }
 
+  script.unlowlight(lines);
   script.showNone(prefix);
   script.showNone(lines);
 }
@@ -418,8 +420,9 @@ async function learnFromLine(target, scheduler, script) {
 
   script.showWordInitials(all);
   if (before.length === prefixLength) {
-    script.showAll(all[0]);
+    script.showAll(before[0]);
   }
+  script.lowlight(toLearn);
 
   for (const slice of allSlices(toLearn, 5)) {
     for (const line of slice) {
@@ -436,6 +439,7 @@ async function learnFromLine(target, scheduler, script) {
     });
   }
 
+  script.unlowlight(toLearn);
   script.showNone(all);
 }
 
@@ -540,6 +544,20 @@ class Script {
     }
 
     return lines;
+  }
+
+  lowlight(lines) {
+    for (const line of lines) {
+      const elem = document.getElementById(line);
+      elem.classList.add("review-line");
+    }
+  }
+
+  unlowlight(lines) {
+    for (const line of lines) {
+      const elem = document.getElementById(line);
+      elem.classList.remove("review-line");
+    }
   }
 
   highlight(line) {
