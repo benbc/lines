@@ -213,9 +213,9 @@ function recordSuccess(oldCard, newCard, easeDelta) {
 }
 
 function recordFailure(oldCard, newCard) {
-  newCard.ease = clampEase(oldCard.ease - 3);
+  newCard.ease = 0;
   newCard.streak = 0;
-  newCard.display = clampDisplay(oldCard.display - 1);
+  newCard.display = oldCard.display;
 }
 
 function recordDates(card) {
