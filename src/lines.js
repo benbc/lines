@@ -209,7 +209,7 @@ function recordSuccess(oldCard, newCard, easeDelta) {
   newCard.ease = clampEase(newCard.ease + easeDelta);
   newCard.streak++;
 
-  if (newCard.streak === 3 && newCard.display < Display.None) {
+  if (newCard.streak === 5 && newCard.display < Display.None) {
     newCard.ease = 0;
     newCard.streak = 0;
     newCard.display++;

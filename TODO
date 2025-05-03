@@ -1,9 +1,8 @@
+maybe: don't drop display on failure
 maybe: Use same logic in extending as recordSuccess so we don't extend over lots of lines that will be ignored
 maybe: change sort order to go through a scene in order
 maybe: non-determinstic display bumping so adjacent lines don't all drop out at once
 maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)
-maybe: replace ease/streak with a pre-determined succession
-maybe: more aggressive ease-drop on failure (instead of display drop?)
 
 Deploy on internet
 Mobile version
