@@ -14,6 +14,13 @@ p {
     color: grey;
 }
 
+.annotation {
+    float: right;
+    visibility: visible;
+    color: lightgrey;
+    font-size: small;
+}
+
 .review-line {
     background-color: #fdfbf7;
 }

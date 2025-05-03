@@ -65,11 +65,11 @@ class Scheduler {
   }
 
   async hasRecordOf(line) {
-    return (await this.#getCard(line)) !== undefined;
+    return (await this.getCard(line)) !== undefined;
   }
 
-  async getDisplay(line) {
-    return (await this.#getCard(line)).display;
+  async getCard(line) {
+    return await this.db.get("lines", line);
   }
 
   async findFirstReviewable() {
@@ -106,7 +106,7 @@ class Scheduler {
   }
 
   async recordReview(line, result) {
-    const oldCard = await this.#getCard(line);
+    const oldCard = await this.getCard(line);
     console.assert(oldCard);
     const newCard = { id: line };
 
@@ -164,10 +164,6 @@ class Scheduler {
     );
     console.log("Streak:");
     console.log(streak);
-  }
-
-  async #getCard(line) {
-    return await this.db.get("lines", line);
   }
 
   async #putCard(card) {
@@ -363,6 +359,7 @@ async function reviewLine(target, script, scheduler) {
   }
 
   await normaliseDisplay(lines, scheduler, script);
+  await annotate(lines, scheduler, script);
   script.lowlight(lines);
 
   for (let i = 0; i < lines.length; i++) {
@@ -378,6 +375,7 @@ async function reviewLine(target, script, scheduler) {
   }
 
   script.unlowlight(lines);
+  script.deannotate(lines);
   script.showNone(prefix);
   script.showNone(lines);
 }
@@ -445,8 +443,8 @@ async function learnFromLine(target, scheduler, script) {
 
 async function normaliseDisplay(lines, scheduler, script) {
   for (let line of lines) {
-    const display = await scheduler.getDisplay(line);
-    switch (display) {
+    const card = await scheduler.getCard(line);
+    switch (card.display) {
       case Display.None:
         script.showNone(line);
         break;
@@ -457,8 +455,15 @@ async function normaliseDisplay(lines, scheduler, script) {
         script.showWordInitials(line);
         break;
       default:
-        console.error(`Impossible display: '${display}'`);
+        console.error(`Impossible display: '${card.display}'`);
     }
+  }
+}
+
+async function annotate(lines, scheduler, script) {
+  for (let line of lines) {
+    const card = await scheduler.getCard(line);
+    script.annotate(line, card.ease, card.streak, card.due);
   }
 }
 
@@ -611,6 +616,25 @@ class Script {
 
   showAll(...lines) {
     this.#setVisibility(lines, "show-all");
+  }
+
+  annotate(line, ease, streak, due) {
+    const annotation = this.#getAnnotation(line);
+    annotation.innerHTML = `[${ease}, ${streak}, ${due}]`;
+  }
+
+  deannotate(lines) {
+    for (const line of lines) {
+      const annotation = this.#getAnnotation(line);
+      annotation.innerHTML = "";
+    }
+  }
+
+  #getAnnotation(line) {
+    const elem = document.getElementById(line);
+    const annotations = elem.getElementsByClassName("annotation");
+    console.assert(annotations.length == 1);
+    return annotations[0];
   }
 
   #setVisibility(lines, visibility) {
