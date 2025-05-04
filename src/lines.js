@@ -131,9 +131,12 @@ class Scheduler {
 
   async logStats() {
     const lines = await this.db.getAll("lines");
-    console.log(`${lines.length} lines`);
-    const due = await this.#getDueToday();
-    console.log(`${due.length} due`);
+    const dueToday = (await this.#getDueToday()).length;
+    const dueSoon = (await this.#getDueSoon()).length;
+    const dueTomorrow = dueSoon - dueToday;
+    console.log(
+      `${lines.length} lines (${dueToday} due today, ${dueTomorrow} tomorrow)`,
+    );
 
     const dueOn = objSort(
       objMap(
