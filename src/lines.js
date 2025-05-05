@@ -80,13 +80,17 @@ class Scheduler {
   }
 
   async isReviewable(line) {
-    const reviewable = await this.#getDueSoon();
-    return reviewable.includes(line);
+    const card = await this.getCard(line);
+    return card.due <= tomorrow() && !isUnwantedRepeat(card);
   }
 
   async anyReviewable(lines) {
-    const reviewable = await this.#getDueSoon();
-    return lines.some((l) => reviewable.includes(l));
+    for (const line of lines) {
+      if (await this.isReviewable(line)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   async findFirstUnlearnt() {
@@ -131,11 +135,12 @@ class Scheduler {
 
   async logStats() {
     const lines = await this.db.getAll("lines");
+    const numLines = lines.length;
+    const totalLines = this.allLines.length;
     const dueToday = (await this.#getDueToday()).length;
-    const dueSoon = (await this.#getDueSoon()).length;
-    const dueTomorrow = dueSoon - dueToday;
+    const dueTomorrow = (await this.#getDueTomorrow()).length;
     console.log(
-      `${lines.length} lines (${dueToday} due today, ${dueTomorrow} tomorrow)`,
+      `${numLines}/${totalLines} lines (${dueToday} due today, ${dueTomorrow} tomorrow)`,
     );
 
     const dueOn = objSort(
@@ -185,11 +190,11 @@ class Scheduler {
     );
   }
 
-  async #getDueSoon() {
+  async #getDueTomorrow() {
     return await this.db.getAllKeysFromIndex(
       "lines",
       "by-due",
-      IDBKeyRange.upperBound(tomorrow()),
+      IDBKeyRange.only(tomorrow()),
     );
   }
 }
@@ -199,7 +204,7 @@ function recordSuccess(oldCard, newCard, easeDelta) {
   newCard.streak = oldCard.streak;
   newCard.display = oldCard.display;
 
-  if (isToday(oldCard.lastReview) && !isToday(oldCard.due)) {
+  if (isUnwantedRepeat(oldCard)) {
     // Don't consider lines to be getting easier if we repeatedly review them
     // on the same day
     return;
@@ -225,6 +230,10 @@ function recordFailure(oldCard, newCard) {
   newCard.ease = 0;
   newCard.streak = 0;
   newCard.display = oldCard.display;
+}
+
+function isUnwantedRepeat(card) {
+  return isToday(card.lastReview) && !isToday(card.due);
 }
 
 function recordDates(card) {

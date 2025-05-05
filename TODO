@@ -1,5 +1,5 @@
-maybe: Use same logic in extending as recordSuccess so we don't extend over lots of lines that will be ignored
-maybe: change sort order to go through a scene in order
+Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
+
 maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)
 
 Deploy on internet
@@ -12,3 +12,7 @@ Add way of flagging lines failed in rehearsals etc
 Display summary information
 Indicate hard lines
 Remove ingestion
+
+Voice recognition for checking
+Script ingestion
+Copyright issues?
