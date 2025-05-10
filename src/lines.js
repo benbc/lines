@@ -219,7 +219,7 @@ function recordSuccess(oldCard, newCard, easeDelta) {
       (newCard.streak === 4 && Math.random() <= 0.5) ||
       (newCard.streak === 5 && Math.random() <= 0.75)
     ) {
-      newCard.ease = 0;
+      newCard.ease = 1;
       newCard.streak = 0;
       newCard.display++;
     }
