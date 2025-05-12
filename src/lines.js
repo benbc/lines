@@ -138,9 +138,12 @@ class Scheduler {
     const numLines = lines.length;
     const totalLines = this.allLines.length;
     const dueToday = (await this.#getDueToday()).length;
-    const dueTomorrow = (await this.#getDueTomorrow()).length;
+    let reviewableTomorrow = 0;
+    for (const line of await this.#getDueTomorrow()) {
+      if (this.isReviewable(line)) reviewableTomorrow++;
+    }
     console.log(
-      `${numLines}/${totalLines} lines (${dueToday} due today, ${dueTomorrow} tomorrow)`,
+      `${numLines}/${totalLines} lines (${dueToday} due today, ${reviewableTomorrow} reviewable from tomorrow)`,
     );
 
     const dueOn = objSort(

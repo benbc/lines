@@ -1,3 +1,4 @@
+Completly bypass recordReview() for unwanted repeats that are successes (not just recordSuccess())
 Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
 
 maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)
