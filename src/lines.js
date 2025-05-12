@@ -72,8 +72,8 @@ class Scheduler {
     return await this.db.get("lines", line);
   }
 
-  async findFirstReviewable() {
-    const due = await this.#getDueToday();
+  async findFirstDue() {
+    const due = await this.#getDue();
     if (due.length === 0) return;
     due.sort((fst, snd) => fst.lastReview - snd.lastReview);
     return due[0].id;
@@ -81,7 +81,7 @@ class Scheduler {
 
   async isReviewable(line) {
     const card = await this.getCard(line);
-    return card.due <= tomorrow() && !isUnwantedRepeat(card);
+    return isReviewable(card);
   }
 
   async anyReviewable(lines) {
@@ -112,6 +112,9 @@ class Scheduler {
   async recordReview(line, result) {
     const oldCard = await this.getCard(line);
     console.assert(oldCard);
+
+    if (!isUpdatable(oldCard) && result == !Result.Fail) return;
+
     const newCard = { id: line };
 
     switch (result) {
@@ -134,16 +137,14 @@ class Scheduler {
   }
 
   async logStats() {
-    const lines = await this.db.getAll("lines");
+    const lines = await this.#getAll();
     const numLines = lines.length;
     const totalLines = this.allLines.length;
-    const dueToday = (await this.#getDueToday()).length;
-    let reviewableTomorrow = 0;
-    for (const line of await this.#getDueTomorrow()) {
-      if (this.isReviewable(line)) reviewableTomorrow++;
-    }
+    const prop = Math.round((100 * numLines) / totalLines);
+    const due = lines.filter(isDue).length;
+    const reviewable = lines.filter(isReviewable).length;
     console.log(
-      `${numLines}/${totalLines} lines (${dueToday} due today, ${reviewableTomorrow} reviewable from tomorrow)`,
+      `${numLines}/${totalLines} (${prop}%) lines (${due} due, ${reviewable} reviewable)`,
     );
 
     const dueOn = objSort(
@@ -185,36 +186,20 @@ class Scheduler {
     return await this.db.getAllKeys("lines");
   }
 
-  async #getDueToday() {
-    return await this.db.getAllFromIndex(
-      "lines",
-      "by-due",
-      IDBKeyRange.upperBound(today()),
-    );
+  async #getAll() {
+    return await this.db.getAll("lines");
   }
 
-  async #getDueTomorrow() {
-    return await this.db.getAllKeysFromIndex(
-      "lines",
-      "by-due",
-      IDBKeyRange.only(tomorrow()),
-    );
+  async #getDue() {
+    const all = await this.#getAll();
+    return all.filter(isDue);
   }
 }
 
 function recordSuccess(oldCard, newCard, easeDelta) {
-  newCard.ease = oldCard.ease;
-  newCard.streak = oldCard.streak;
+  newCard.ease = clampEase(oldCard.ease + easeDelta);
+  newCard.streak = oldCard.streak + 1;
   newCard.display = oldCard.display;
-
-  if (isUnwantedRepeat(oldCard)) {
-    // Don't consider lines to be getting easier if we repeatedly review them
-    // on the same day
-    return;
-  }
-
-  newCard.ease = clampEase(newCard.ease + easeDelta);
-  newCard.streak++;
 
   if (newCard.display < Display.None) {
     if (
@@ -235,13 +220,30 @@ function recordFailure(oldCard, newCard) {
   newCard.display = oldCard.display;
 }
 
-function isUnwantedRepeat(card) {
-  return isToday(card.lastReview) && !isToday(card.due);
-}
-
 function recordDates(card) {
   card.due = daysFromToday(fuzzEase(card.ease));
   card.lastReview = now();
+}
+
+function isDue(card) {
+  return card.due <= today();
+}
+
+function isDueSoon(card) {
+  return card.due <= tomorrow();
+}
+
+function isSeenToday(card) {
+  return isToday(card.lastReview);
+}
+
+function isUpdatable(card) {
+  // Generally we are happy to do early reviews, but we don't want do do them repeatedly.
+  return isDue(card) || !isSeenToday(card);
+}
+
+function isReviewable(card) {
+  return isDue(card) || (isDueSoon(card) && isUpdatable(card));
 }
 
 function fuzzEase(ease) {
@@ -332,7 +334,7 @@ async function ingestFromLine(target, scheduler, script) {
 }
 
 async function review(scheduler, script) {
-  const line = await scheduler.findFirstReviewable();
+  const line = await scheduler.findFirstDue();
   if (!line) return;
   await reviewLine(line, script, scheduler);
 }
