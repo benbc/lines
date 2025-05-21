@@ -342,14 +342,15 @@ async function review(scheduler, script) {
 async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
-  // Prepend lines until we see four consecutive unreviewable lines
-  const prefixLength = 4;
+  // Prepend lines until we see `extensionLength` consecutive unreviewable lines
+  const extensionLength = 3;
   let line = target;
   while (true) {
     line = script.lineBefore(line);
     if (!line) break;
     lines.unshift(line);
-    if (!(await scheduler.anyReviewable(lines.slice(0, prefixLength)))) break;
+    if (!(await scheduler.anyReviewable(lines.slice(0, extensionLength))))
+      break;
   }
 
   // Detach the unreviewable prefix
@@ -358,15 +359,19 @@ async function reviewLine(target, script, scheduler) {
     prefix.push(lines.shift());
   }
 
-  // Append lines until we see four consecutive unreviewable lines or an unlearnt one
+  // Append lines until we see `extensionLength` consecutive unreviewable lines or an unlearnt one
   line = target;
   while (true) {
     line = script.lineAfter(line);
     if (!line) break;
     if (!(await scheduler.hasRecordOf(line))) break;
     lines.push(line);
-    if (lines.length >= 4) {
-      if (!(await scheduler.anyReviewable(lines.slice(lines.length - 4))))
+    if (lines.length >= extensionLength) {
+      if (
+        !(await scheduler.anyReviewable(
+          lines.slice(lines.length - extensionLength),
+        ))
+      )
         break;
     }
   }
@@ -377,7 +382,7 @@ async function reviewLine(target, script, scheduler) {
   }
 
   script.showWordInitials(prefix);
-  if (prefix.length === prefixLength) {
+  if (prefix.length === extensionLength) {
     script.showAll(prefix[0]);
   }
 
