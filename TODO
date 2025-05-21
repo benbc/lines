@@ -1,3 +1,7 @@
+Correctly indent shared lines
+Log number of lines reviewed today
+Run whole scenes
+
 Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
 
 maybe: vary algorithm for lines that are repeatedly forgotten (slower/non-determinstic ease bumping?)
@@ -6,7 +10,6 @@ Deploy on internet
 Mobile version
 Transfer state between clients
 
-Run whole scenes
 Undo
 Add way of flagging lines failed in rehearsals etc
 Display summary information

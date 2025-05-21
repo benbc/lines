@@ -203,9 +203,9 @@ function recordSuccess(oldCard, newCard, easeDelta) {
 
   if (newCard.display < Display.None) {
     if (
-      newCard.streak >= 6 ||
-      (newCard.streak === 4 && Math.random() <= 0.5) ||
-      (newCard.streak === 5 && Math.random() <= 0.75)
+      newCard.streak >= 8 ||
+      (newCard.streak === 6 && Math.random() <= 0.5) ||
+      (newCard.streak === 7 && Math.random() <= 0.75)
     ) {
       newCard.ease = 1;
       newCard.streak = 0;
