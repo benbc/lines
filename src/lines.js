@@ -142,7 +142,10 @@ class Scheduler {
     const totalLines = this.allLines.length;
     const prop = Math.round((100 * numLines) / totalLines);
     const due = lines.filter(isDue).length;
-    console.log(`${numLines}/${totalLines} (${prop}%) lines (${due} due)`);
+    const reviewed = lines.filter((c) => isToday(c.lastReview)).length;
+    console.log(
+      `${numLines}/${totalLines} (${prop}%) lines (${due} due, ${reviewed} reviewed today)`,
+    );
 
     const dueOn = objSort(
       objMap(

@@ -1,5 +1,4 @@
 Correctly indent shared lines
-Log number of lines reviewed today
 Run whole scenes
 
 Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
