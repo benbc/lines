@@ -30,11 +30,13 @@ async function control() {
   while (true) {
     await scheduler.logStats();
 
-    const event = await keyPress("l", "r", "i", "d", "e");
+    const event = await keyPress("l", "r", "s", "i", "d", "e");
     if (event.key === "l") {
       await learn(scheduler, script);
     } else if (event.key === "r") {
       await review(scheduler, script);
+    } else if (event.key === "s") {
+      await scene(scheduler, script);
     } else if (event.key === "i") {
       await ingest(scheduler, script);
     } else if (event.key === "d") {
@@ -143,8 +145,11 @@ class Scheduler {
     const prop = Math.round((100 * numLines) / totalLines);
     const due = lines.filter(isDue).length;
     const reviewed = lines.filter((c) => isToday(c.lastReview)).length;
+    const todaysRepeats = lines.filter(
+      (c) => isToday(c.lastReview) && c.ease == 0,
+    ).length;
     console.log(
-      `${numLines}/${totalLines} (${prop}%) lines (${due} due, ${reviewed} reviewed today)`,
+      `${numLines}/${totalLines} (${prop}%) lines (${due} due, ${reviewed} reviewed today, ${todaysRepeats} repeats)`,
     );
 
     const dueOn = objSort(
@@ -405,6 +410,53 @@ async function reviewLine(target, script, scheduler) {
   script.unlowlight(lines);
   script.deannotate(lines);
   script.showNone(prefix);
+  script.showNone(lines);
+}
+
+async function scene(scheduler, script) {
+  const line = await scheduler.findFirstDue();
+  if (!line) return;
+  await reviewScene(line, script, scheduler);
+}
+
+async function reviewScene(target, script, scheduler) {
+  let lines = [target];
+
+  // Prepend lines until we reach the start of the scene
+  let line = target;
+  while (true) {
+    line = script.lineBefore(line);
+    if (!line) break;
+    lines.unshift(line);
+  }
+
+  // Append lines until we reach the end of the scene
+  line = target;
+  while (true) {
+    line = script.lineAfter(line);
+    if (!line) break;
+    if (!(await scheduler.hasRecordOf(line))) break;
+    lines.push(line);
+  }
+
+  await normaliseDisplay(lines, scheduler, script);
+  await annotate(lines, scheduler, script);
+  script.lowlight(lines);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const rating = await checkLine(line, script);
+    script.showWordInitials(line);
+
+    if (rating === Result.Fail) {
+      await relearn(line, scheduler, script);
+    }
+
+    await scheduler.recordReview(line, rating);
+  }
+
+  script.unlowlight(lines);
+  script.deannotate(lines);
   script.showNone(lines);
 }
 

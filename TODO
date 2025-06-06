@@ -1,5 +1,5 @@
 Correctly indent shared lines
-Run whole scenes
+One-tap checking (bypass line initial)
 
 Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
 
