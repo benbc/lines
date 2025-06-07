@@ -8,8 +8,8 @@
     {% for scene, lines in script %}
         {% set scene_loop = loop %}
         <h1>{{ scene }}</h1>
-        {% for prefix, line in lines %}
-            <p id="{{ hash(line) }}" class="show-none">
+        {% for prefix, line, line_num, id in lines %}
+            <p id="{{ id }}" class="show-none">
                 <span class="prefix">{{ prefix }}</span>
                 {% for element in line -%}
                     <span class="element {{ 'first' if loop.first }}">

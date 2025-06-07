@@ -16,6 +16,8 @@ def main():
     script = shorten_prefixes(script)
     script = split_lines(script)
     script = zip_prefixes(script)
+    script = add_line_nums(script)
+    script = add_line_ids(script)
     html = render(script, "src/lines.jinja")
     write(html, "out/lines.html")
 
@@ -143,6 +145,40 @@ def zip_prefixes(script):
             zipped_lines.extend(zip(prefixes, lines))
         zipped.append((scene, zipped_lines))
     return zipped
+
+
+# Adds per-scene line numbers to each line
+def add_line_nums(script):
+    numbered = []
+    for scene, lines in script:
+        line_num = 1
+        numbered_lines = []
+        for prefix, line in lines:
+            numbered_lines.append((prefix, line, line_num))
+            line_num += 1
+        numbered.append((scene, numbered_lines))
+    return numbered
+
+
+# Adds a unique id to each line
+def add_line_ids(script):
+    ids = set()
+    ided = []
+    for scene, lines in script:
+        ided_lines = []
+        for prefix, line, line_num in lines:
+            id = hash((scene, prefix, line))
+            if id in ids:
+                # We prefer not to include the line number in the hash because that means that it
+                # will change if lines are added or removed elsewhere, causing line state to be
+                # lost. But we do include the line number to disambiguate clashes caused by
+                # identical lines
+                id = hash((scene, prefix, line, line_num))
+            assert id not in ids, (scene, prefix, line)
+            ids.add(id)
+            ided_lines.append((prefix, line, line_num, id))
+        ided.append((scene, ided_lines))
+    return ided
 
 
 def render(script, path):
