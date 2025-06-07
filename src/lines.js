@@ -590,7 +590,17 @@ async function keyPress(...expected) {
 class Script {
   getAllLines() {
     const lines = Array.from(document.getElementsByTagName("P"));
-    return lines.map((e) => e.id);
+    const ids = new Map();
+    for (const line of lines) {
+      const id = line.id;
+      const text = this.#extractText(line);
+      if (ids.has(id)) {
+        console.error(`Id ${id} shared by lines:\n${ids.get(id)}\n${text}`);
+      } else {
+        ids.set(id, text);
+      }
+    }
+    return Array.from(ids.keys());
   }
 
   lineBefore(line) {
@@ -728,7 +738,14 @@ class Script {
       elem.classList.add(visibility);
     }
   }
+
+  #extractText(line) {
+    const clone = line.cloneNode(true);
+    clone.classList.remove(...Script.visibilityClasses);
+    return clone.innerText;
+  }
 }
+
 Script.visibilityClasses = [
   "show-none",
   "show-line-initials",
