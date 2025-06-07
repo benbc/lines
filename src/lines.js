@@ -310,25 +310,29 @@ async function ingestFromLine(target, scheduler, script) {
 
   for (let line of lines) {
     const rating = await checkLine(line, script);
-    let ease, streak;
+    let ease, display, streak;
     switch (rating) {
       case Result.Good:
-        ease = 3;
+        ease = randomInt(3, 8);
+        display = Display.None;
         streak = 2;
         break;
       case Result.Okay:
-        ease = 2;
+        ease = randomInt(2, 5);
+        display = Display.LineInitials;
         streak = 1;
         break;
       case Result.Fail:
-        ease = streak = 0;
+        ease = 0;
+        display = Display.WordInitials;
+        streak = 0;
         break;
       default:
         console.error(`impossible rating ${rating}`);
     }
     await scheduler.addNew(line, {
       ease: ease,
-      display: Display.WordInitials,
+      display: display,
       streak: streak,
     });
     script.showWordInitials(line);
@@ -806,4 +810,8 @@ function normalRandom(mean, stdDev) {
   const u2 = Math.random();
   const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
   return z0 * stdDev + mean;
+}
+
+function randomInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
 }
