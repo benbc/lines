@@ -25,7 +25,7 @@ async function control() {
   let db = await openDB();
   const script = new Script();
   const scheduler = new Scheduler(db, script.getAllLines());
-  await scheduler.pruneOrphanedLines();
+  // await scheduler.pruneOrphanedLines();
 
   while (true) {
     await scheduler.logStats();
