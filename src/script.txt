@@ -166,7 +166,7 @@ Clarence hath not another day to live -
 Which done God take King Edward to his mercy
 And leave the world for me to bustle in.
 For then I'll marry Warwick's youngest daughter.
-What - though I killed her husband and her father?
+What - though I killed her husband and his father?
 The readiest way to make the wench amends
 Is to become her husband and her father -
 The which will I not all so much for love
@@ -447,18 +447,19 @@ Grant me this boon.
 
 LADY ANNE
 
-Tressel and Berkeley - go along with me.
+To see you are become so penitent.
 
 RICHARD
 
 Bid me farewell.
 
-LADY ANNE
+TRESSEL
 
-Imagine I have said farewell already.
+Towards Chertsey noble lord?
 
 RICHARD
 
+No to Whitefriars - there attend my coming.
 Was ever woman in this humour wooed?
 Was ever woman in this humour won?
 I'll have her but I will not keep her long.
@@ -767,13 +768,18 @@ But he poor man by your first order died
 And that a winged Mercury did bear -
 Some tardy cripple bore the countermand
 That came too lag - to see him buried.
-Come Hastings - help me to my closet.
+
+KING EDWARD IV
+
 Oh - poor Clarence.
+
+RICHARD
+
 This is the fruits of rashness. Marked you not
 How that the guilty kindred of the queen
 Looked pale when they did hear of Clarence's death?
 O - they did urge it still unto the king.
-God will revenge it. Come lords will you go
+God will revenge it. Come then will you go
 To comfort Edward with our company?
 
 ACT II SCENE II (after Edward's death)
@@ -1050,7 +1056,7 @@ RICHARD
 
 If? Thou protector of this damned strumpet
 Talk you to me of "ifs"? You are a traitor.
-Off with his head. Now by Saint Paul I swear
+Off with his head. Now! By Saint Paul I swear
 I will not dine until I see the same.
 Catesby look that it be done.
 The rest that love me - rise and follow me.
@@ -1264,7 +1270,7 @@ I cannot nor I will not yield to you.
 
 BUCKINGHAM
 
-And in this resolution here we leave you.
+Zounds I'll entreat no more.
 
 RICHARD
 
@@ -1284,7 +1290,7 @@ Cousin of Buckingham, you sage, grave men
 Since you will buckle fortune on my back
 To bear her burden whether I will or no
 I must have patience to endure the load.
-For God doth know and you may partly see
+But God doth know and you may partly see
 How far I am from the desire of this.
 
 LORD MAYOR
@@ -1309,7 +1315,7 @@ And so most joyfully we take our leave.
 
 RICHARD
 
-Come let us to our holy work again.
+Go - I shall to my holy work again.
 Farewell my cousin, farewell gentle friends.
 
 ACT IV SCENE II (after coronation)
@@ -1434,7 +1440,7 @@ Is thy name Tyrrel?
 
 TYRREL
 
-James Tyrrel and your most obedient subject.
+Tis Tyrrel and your most obedient subject.
 
 RICHARD
 
@@ -2213,10 +2219,10 @@ Six or seven thousand is their utmost power.
 RICHARD
 
 Why our battalion trebles that account.
-Up with the tent! Come noble gentlemen
+Up with the tent! My noble Catesby come
 Let us survey the vantage of the ground.
 Let's lack no discipline, make no delay -
-For lords tomorrow is a busy day.
+For sirs tomorrow is a busy day.
 
 DORSET
 
@@ -2245,7 +2251,7 @@ Send out a pursuivant at arms
 To Derby's regiment. Bid him bring his power
 Before sunrising lest his son George fall
 Into the blind cave of eternal night.
-Fill me a bowl of wine. Give me a watch.
+Fill me a draught of wine. Give me a watch.
 Look that my staves be sound and not too heavy.
 Catesby -
 
@@ -2263,7 +2269,7 @@ Went through the army cheering up the soldiers.
 
 RICHARD
 
-So I am satisfied. Give me a bowl of wine.
+So I am satisfied. Give me a draught of wine.
 I have not that alacrity of spirit
 Nor cheer of mind that I was wont to have.
 Set it down. Is ink and paper ready?
