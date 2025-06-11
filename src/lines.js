@@ -25,7 +25,7 @@ async function control() {
   let db = await openDB();
   const script = new Script();
   const scheduler = new Scheduler(db, script.getAllLines());
-  // await scheduler.pruneOrphanedLines();
+  await scheduler.pruneOrphanedLines();
 
   while (true) {
     await scheduler.logStats();
@@ -60,7 +60,7 @@ class Scheduler {
     for (var line of await this.#getLearntLines()) {
       if (!this.allLines.includes(line)) {
         // this line has been removed from the script
-        await this.db.delete("lines", line);
+        // await this.db.delete("lines", line);
         console.log(`pruned ${line}`);
       }
     }
