@@ -357,6 +357,7 @@ async function reviewLine(target, script, scheduler) {
   while (true) {
     line = script.lineBefore(line);
     if (!line) break;
+    if (!(await scheduler.hasRecordOf(line))) break;
     lines.unshift(line);
     if (!(await scheduler.anyReviewable(lines.slice(0, extensionLength))))
       break;
