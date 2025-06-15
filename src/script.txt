@@ -1514,7 +1514,7 @@ A king - perhaps -
 
 BUCKINGHAM
 
-        My lord.
+        My lord -
 
 RICHARD
 
@@ -2031,8 +2031,8 @@ Of Buckingham to welcome them ashore.
 
 RICHARD
 
-Some light-foot friend post to the Duke of Norfolk.
-Fly to the duke and post thou to Salisbury.
+Some light-foot friend post to the Duke of Norfolk -
+Fly to the duke. And post thou to Salisbury.
 Why stay you here and go not to the duke?
 
 CATESBY
@@ -2142,7 +2142,7 @@ I never was nor never will be false.
 
 RICHARD
 
-Go then and muster men but leave behind
+Go then and muster men - but leave behind
 Your son George Stanley. Look your heart be firm
 Or else his head's assurance is but frail.
 
@@ -2318,7 +2318,7 @@ Your friends are up and buckle on their armour.
 RICHARD
 
 O Catesby I have dreamed a fearful dream.
-What thinkest thou will our friends prove all true?
+What thinkest thou - will our friends prove all true?
 
 CATESBY
 
@@ -2391,7 +2391,7 @@ Come - bustle bustle. Caparison my horse.
 Call up Lord Derby - bid him bring his power.
 I will lead forth my soldiers to the plain
 And thus my battle shall be ordered -
-My foreward shall be drawn out all in lengt,
+My foreward shall be drawn out all in length,
 Consisting equally of horse and foot -
 Our archers shall be placed in the midst.
 This and Saint George to boot. What think you Catesby?
