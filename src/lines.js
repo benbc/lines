@@ -248,7 +248,7 @@ function isUpdatable(card) {
 }
 
 function isReviewable(card) {
-  return isDue(card) || (isDueSoon(card) && isUpdatable(card));
+  return isDue(card);
 }
 
 function fuzzEase(ease) {
