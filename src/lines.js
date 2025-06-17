@@ -637,7 +637,7 @@ class Script {
     const lines = [];
     for (
       let line = startLine.nextElementSibling;
-      lines.length < count && line.tagName === "P";
+      lines.length < count && line && line.tagName === "P";
       line = line.nextElementSibling
     ) {
       lines.push(line.id);
