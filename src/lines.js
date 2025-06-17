@@ -352,7 +352,7 @@ async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
   // Prepend lines until we see `extensionLength` consecutive unreviewable lines
-  const extensionLength = 3;
+  const extensionLength = 2;
   let line = target;
   while (true) {
     line = script.lineBefore(line);
