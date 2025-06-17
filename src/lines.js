@@ -124,7 +124,7 @@ class Scheduler {
         recordSuccess(oldCard, newCard, 2);
         break;
       case Result.Okay:
-        recordSuccess(oldCard, newCard, 1);
+        recordSuccess(oldCard, newCard, 0);
         break;
       case Result.Fail:
         recordFailure(oldCard, newCard);
