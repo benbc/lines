@@ -11,10 +11,6 @@ const Display = {
   None: 2,
 };
 
-function clampDisplay(display) {
-  return clamp(display, 0, 2);
-}
-
 function clampEase(ease) {
   return clamp(ease, 0, 8);
 }
@@ -232,10 +228,6 @@ function recordDates(card) {
 
 function isDue(card) {
   return card.due <= today();
-}
-
-function isDueSoon(card) {
-  return card.due <= tomorrow();
 }
 
 function isSeenToday(card) {
@@ -798,10 +790,6 @@ function isToday(date) {
 
 function today() {
   return dateOnly(new Date());
-}
-
-function tomorrow() {
-  return dateOnly(addDays(1, new Date()));
 }
 
 function daysFromToday(days) {
