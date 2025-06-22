@@ -2238,7 +2238,8 @@ It's supper time, my lord - it's nine o'clock.
 
 RICHARD
 
-I will not sup tonight. Give me some ink and paper.
+I will not sup tonight.
+Give me some ink and paper.
 Is all my armour laid into my tent?
 
 CATESBY
