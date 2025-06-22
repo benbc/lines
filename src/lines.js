@@ -684,7 +684,10 @@ class Script {
     } else {
       newIndex = oldIndex + 1;
     }
-    const newVis = Script.visibilityClasses[newIndex];
+    var newVis = Script.visibilityClasses[newIndex];
+    if (newVis == "show-line-initials") {
+      newVis = "show-word-initials";
+    }
 
     this.#setVisibility([line], newVis);
   }

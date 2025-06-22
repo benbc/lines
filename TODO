@@ -1,5 +1,4 @@
 Correctly indent shared lines
-One-tap checking (bypass line initial)
 Retro-checking -- assume correct and move to next line by default
 Change sort order to go through a scene in order (maybe whole play in order?) -- but that will pick up today's failures for repeat before anything else, which isn't what we want -- can we fix that?
 Bug: odd lines end up with initials displayed (due to relearn() not resetting)
