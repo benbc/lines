@@ -344,7 +344,7 @@ async function reviewLine(target, script, scheduler) {
   let lines = [target];
 
   // Prepend lines until we see `extensionLength` consecutive unreviewable lines
-  const extensionLength = 2;
+  const extensionLength = 3;
   let line = target;
   while (true) {
     line = script.lineBefore(line);
@@ -383,9 +383,11 @@ async function reviewLine(target, script, scheduler) {
     lines.pop();
   }
 
-  script.showWordInitials(prefix);
-  if (prefix.length === extensionLength) {
-    script.showAll(prefix[0]);
+  if (prefix.length >= 1) {
+    script.showWordInitials(prefix[prefix.length - 1]);
+  }
+  if (prefix.length >= 2) {
+    script.showAll(prefix[prefix.length - 2]);
   }
 
   await normaliseDisplay(lines, scheduler, script);
