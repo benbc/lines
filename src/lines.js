@@ -26,7 +26,7 @@ async function control() {
   while (true) {
     await scheduler.logStats();
 
-    const event = await keyPress("l", "r", "s", "i", "d", "e");
+    const event = await keyPress("l", "r", "s", "i", "m", "d", "e");
     if (event.key === "l") {
       await learn(scheduler, script);
     } else if (event.key === "r") {
@@ -35,6 +35,8 @@ async function control() {
       await scene(scheduler, script);
     } else if (event.key === "i") {
       await ingest(scheduler, script);
+    } else if (event.key === "m") {
+      await mark(scheduler, script);
     } else if (event.key === "d") {
       // await deleteDB(db);
       db = await openDB();
@@ -334,6 +336,25 @@ async function ingestFromLine(target, scheduler, script) {
   script.showNone(lines);
 }
 
+async function mark(scheduler, script) {
+  script.showWordInitials(script.getAllLines());
+  for (let firstLine of script.scenes()) {
+    lineLoop: for (let line = firstLine; line; line = script.lineAfter(line)) {
+      script.highlight(line);
+      const key = await keyPress("n", "s", "f");
+      script.unhighlight(line);
+      switch (key.key) {
+        case "s":
+          break lineLoop;
+        case "f":
+          scheduler.recordReview(line, Result.Fail);
+        case "n":
+      }
+    }
+  }
+  script.showNone(script.getAllLines());
+}
+
 async function review(scheduler, script) {
   const line = await scheduler.findFirstDue();
   if (!line) return;
@@ -596,6 +617,16 @@ class Script {
       }
     }
     return Array.from(ids.keys());
+  }
+
+  scenes() {
+    const firstLines = [];
+    for (const heading of document.getElementsByTagName("H1")) {
+      const line = heading.nextElementSibling;
+      console.assert(line.tagName === "P");
+      firstLines.push(line.id);
+    }
+    return firstLines;
   }
 
   lineBefore(line) {
